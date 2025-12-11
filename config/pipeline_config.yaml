@@ -1,0 +1,172 @@
+# Prompt Optimization & Evaluation System - Pipeline Configuration
+# As specified in PRD Section 7.5
+
+pipeline:
+  name: "Prompt Optimization Experiment"
+  version: "1.0.0"
+  random_seed: 42
+
+# Dataset Configuration (PRD Section 1)
+datasets:
+  dataset_a:
+    path: "data/dataset_a.json"
+    size: 75
+    categories:
+      - factual_knowledge
+      - basic_arithmetic
+      - entity_extraction
+      - classification
+      - simple_reasoning
+    distribution:
+      factual_knowledge: 18  # 15-20 samples
+      basic_arithmetic: 18   # 15-20 samples
+      entity_extraction: 18  # 15-20 samples
+      classification: 12     # 10-15 samples
+      simple_reasoning: 9    # 10-15 samples (total=75)
+
+  dataset_b:
+    path: "data/dataset_b.json"
+    size: 35
+    categories:
+      - mathematical_word_problems
+      - logical_reasoning_chains
+      - planning_tasks
+      - analytical_reasoning
+    distribution:
+      mathematical_word_problems: 11  # 10-12 samples
+      logical_reasoning_chains: 9     # 8-10 samples
+      planning_tasks: 9               # 8-10 samples
+      analytical_reasoning: 6         # 5-8 samples (total=35)
+
+# LLM Configuration (PRD Section 7.2, 7.3)
+model:
+  provider: "openai"  # Options: "openai", "anthropic"
+  model_name: "gpt-4"  # OpenAI: "gpt-4", "gpt-4-turbo" | Anthropic: "claude-3-5-sonnet-20241022"
+  temperature: 0.0  # Deterministic for baseline and most tasks
+  max_tokens: 500
+  top_p: 1.0
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  logprobs: true  # Required for entropy calculation
+  top_logprobs: 5  # Capture top 5 token probabilities
+
+# Optimization Techniques (PRD Section 3)
+optimization:
+  techniques:
+    - CoT           # Chain-of-Thought
+    - CoT++         # Enhanced Chain-of-Thought
+    - ReAct         # Reasoning + Acting
+    - ToT           # Tree of Thoughts
+    - Role-Based    # Role-based prompting
+    - Few-Shot      # Few-Shot Learning
+
+  # Technique-specific settings
+  few_shot:
+    n_shots: 3  # Number of examples (2-5 recommended)
+    selection_strategy: "representative"  # Options: "random", "representative", "nearest_neighbor"
+
+  tot:
+    n_branches: 3  # Number of alternative approaches to explore
+    max_depth: 3   # Maximum reasoning depth
+
+  # Number of runs per sample for variance estimation
+  n_runs_per_sample: 3
+
+  # Caching
+  enable_caching: true
+  cache_dir: "cache"
+
+  # Batch processing
+  batch_size: 10
+
+# Evaluation Configuration (PRD Section 4)
+evaluation:
+  # Primary metrics
+  metrics:
+    - accuracy
+    - entropy
+    - perplexity
+    - token_count
+    - loss_function
+
+  # Loss Function Weights (PRD Section 2.2.2)
+  # L = α·H(Y|x) + β·(|x|/C_max) + γ·PPL(x) + δ·(1-Acc(x))
+  loss_function_weights:
+    alpha: 0.3   # Entropy weight
+    beta: 0.2    # Length penalty weight
+    gamma: 0.2   # Perplexity weight
+    delta: 0.3   # Accuracy weight
+
+  # Token budget
+  C_max: 500  # Maximum allowed token count
+
+  # Statistical Testing (PRD Section 4.3)
+  statistical_tests:
+    significance_level: 0.05
+    confidence_level: 0.95
+    min_effect_size: 0.2  # Cohen's d threshold
+    bonferroni_correction: true
+
+  # A/B Testing
+  ab_testing:
+    n_runs: 3
+    min_practical_effect: 0.05  # 5% minimum improvement
+
+  # Accuracy calculation
+  accuracy:
+    fuzzy_threshold: 0.85  # Levenshtein similarity threshold
+    semantic_threshold: 0.9  # Embedding similarity threshold
+
+# Visualization Configuration (PRD Section 5)
+visualization:
+  output_formats: ["pdf", "png"]
+  dpi: 300
+  style: "seaborn-v0_8"
+  color_palette: "husl"
+
+  # Required graphs (12 total)
+  graphs:
+    - accuracy_comparison_bar
+    - technique_effectiveness_heatmap
+    - entropy_reduction
+    - perplexity_boxplot
+    - loss_evolution
+    - accuracy_vs_tokens_scatter
+    - token_efficiency_bar
+    - confidence_intervals
+    - significance_matrix
+    - performance_by_difficulty
+    - improvement_distribution_violin
+    - metric_correlations
+
+# Output Configuration
+output:
+  results_dir: "results"
+  figures_dir: "figures"
+  reports_dir: "reports"
+  cache_dir: "cache"
+  logs_dir: "logs"
+
+  # Report formats
+  report_formats: ["json", "csv", "pdf", "latex"]
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/pipeline.log"
+  console: true
+
+# Experimental Options
+experimental:
+  # Skip certain phases (for debugging)
+  skip_baseline: false
+  skip_optimization: false
+  skip_visualization: false
+
+  # Dry run (simulate without API calls)
+  dry_run: false
+
+  # Subset testing (use fewer samples for quick tests)
+  use_subset: false
+  subset_size: 10

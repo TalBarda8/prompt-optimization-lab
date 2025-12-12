@@ -1,0 +1,294 @@
+{
+  "dataset_id": "dataset_b_v2_challenging",
+  "dataset_type": "complex_multi_step_reasoning",
+  "total_samples": 50,
+  "categories": [
+    "multi_step_reasoning",
+    "planning_tasks",
+    "adversarial_questions",
+    "long_context",
+    "ambiguous_queries",
+    "noisy_input"
+  ],
+  "samples": [
+    {
+      "id": "msr_001",
+      "question": "A store offers a loyalty program. After spending $100, you get 10% off your next purchase. After spending $500 total, you get 20% off. Sarah spends $120 on her first visit, $80 on her second, and $350 on her third. How much did she actually pay in total?",
+      "answer": "$514",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_002",
+      "question": "Three pipes fill a pool: A fills in 3 hours, B fills in 4 hours, C drains in 6 hours. If all three run simultaneously, how long to fill the pool?",
+      "answer": "4 hours",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_003",
+      "question": "A palindromic number reads the same forwards and backwards. How many 4-digit palindromic numbers exist where the first digit is odd?",
+      "answer": "450",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_004",
+      "question": "A clock shows 3:15. What is the angle between the hour and minute hands?",
+      "answer": "7.5 degrees",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_005",
+      "question": "You have a 100-liter tank that's 40% full. You add water at 5L/min while it drains at 2L/min. How long until it's 80% full?",
+      "answer": "13.33 minutes",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_006",
+      "question": "In a class of 40 students, 25 play soccer, 20 play basketball, 15 play both, and some play neither. A student is randomly selected. What's the probability they play exactly one sport?",
+      "answer": "50%",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_007",
+      "question": "A bakery makes cakes and cookies. Each cake requires 3 eggs and 2 cups of flour. Each cookie batch requires 1 egg and 1 cup of flour. With 24 eggs and 20 cups of flour, maximizing profit where cakes make $15 and cookies make $5, what should they make?",
+      "answer": "6 cakes and 6 cookie batches ($120 total)",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_008",
+      "question": "A car's value depreciates by 15% in year 1, 12% in year 2, and 10% in year 3. If it cost $30,000 new, what's its value after 3 years?",
+      "answer": "$20,349",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_009",
+      "question": "You have coins worth $1.50 total, using only nickels (5¢), dimes (10¢), and quarters (25¢). You have twice as many nickels as quarters. How many of each coin might you have?",
+      "answer": "2 quarters, 4 nickels, 7 dimes (one valid solution)",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_010",
+      "question": "A sequence starts: 2, 6, 12, 20, 30. What's the next number and what's the pattern?",
+      "answer": "42 (pattern: n*(n+1) where n starts at 1)",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "plan_001",
+      "question": "You must visit 5 cities: A, B, C, D, E. Distances: A-B=100mi, A-C=150mi, A-D=200mi, A-E=120mi, B-C=80mi, B-D=180mi, B-E=90mi, C-D=70mi, C-E=160mi, D-E=110mi. Starting at A and returning to A, what's the shortest route?",
+      "answer": "A→B→C→D→E→A (640 miles)",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "plan_002",
+      "question": "You have 8 hours to complete tasks: Task A (must be done first, 1.5 hours), Task B (depends on A, 2 hours), Task C (independent, 3 hours), Task D (depends on B, 1.5 hours), Task E (depends on C and D, 1 hour). Can you finish everything? If so, what order?",
+      "answer": "Yes. Order: A, then B and C in parallel, then D, then E (7 hours total)",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "plan_003",
+      "question": "You're packing a suitcase (max 25kg). Items: Clothes (5kg), Shoes (2kg), Laptop (3kg), Books (8kg), Camera (1.5kg), Toiletries (2kg), Gifts (6kg). Your priority order is: Laptop > Clothes > Toiletries > Camera > Shoes > Gifts > Books. What do you pack?",
+      "answer": "Laptop, Clothes, Toiletries, Camera, Shoes, Gifts (19.5kg) - skip Books",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "plan_004",
+      "question": "A conference has 6 sessions (S1-S6) in 3 time slots with 2 parallel tracks. S1 and S2 conflict with slot 1. S3 and S4 with slot 2. S5 and S6 with slot 3. You must attend S1, S3, and S5. You want to maximize attending others. Which additional sessions can you attend?",
+      "answer": "S2, S4, and S6 (attend one from each time slot in the other track)",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "plan_005",
+      "question": "You have $5,000 to allocate across 3 investment options: Stock A (10% return, high risk), Bond B (4% return, low risk), Fund C (7% return, medium risk). You want at least 30% in low risk, no more than 40% in high risk. What allocation maximizes returns?",
+      "answer": "$2,000 in A (40%), $1,500 in B (30%), $1,500 in C (30%) - 6.1% return",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "plan_006",
+      "question": "A restaurant seats 80 people. Tables: 10 two-seaters, 8 four-seaters, 4 six-seaters. A party of 25 arrives. What's the most efficient seating to minimize unused seats?",
+      "answer": "Use 4 six-seaters (24 seats) + 1 two-seater = 26 seats (1 unused)",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "plan_007",
+      "question": "You need to paint 4 rooms: Living room (6 hours), Bedroom (4 hours), Kitchen (3 hours), Bathroom (2 hours). Paint must dry 2 hours before adding a second coat. Each room needs 2 coats. What's the minimum total time?",
+      "answer": "17 hours (start all rooms, wait 2 hours, do second coats)",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "plan_008",
+      "question": "A delivery truck has capacity for 1,000kg and 50 cubic meters. Packages: Type A (20kg, 2m³, pays $50), Type B (50kg, 3m³, pays $80), Type C (30kg, 5m³, pays $100). How many of each to maximize revenue?",
+      "answer": "10 Type C packages ($1,000 revenue, 300kg, 50m³)",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "adv_b_001",
+      "question": "A bat and ball together cost $1.10. The bat costs $1.00 more than the ball. If you buy 5 bats and 5 balls, what's the total cost?",
+      "answer": "$5.50",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_b_002",
+      "question": "In a lake, lily pads double every day. On day 48, the lake is completely covered. On what day was the lake half covered?",
+      "answer": "Day 47",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_b_003",
+      "question": "A snail climbs a 10-meter wall. Each day it climbs 3 meters up, but each night it slides 2 meters down. How many days to reach the top?",
+      "answer": "8 days",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_b_004",
+      "question": "You're playing a game where you flip a coin. Heads you win $2, tails you lose $1. Is this a profitable game in the long run?",
+      "answer": "Yes (expected value: +$0.50 per flip)",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_b_005",
+      "question": "A store has a sale: 'Buy one at full price, get the second at 50% off.' Is this better than '25% off everything'?",
+      "answer": "Same (both equal 25% off total)",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_b_006",
+      "question": "If 5 people can build 5 houses in 5 days, how long does it take 10 people to build 10 houses?",
+      "answer": "5 days",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "long_b_001",
+      "question": "A company has 500 employees across 5 departments. HR (50, avg salary $50k), Sales (150, avg $60k), Engineering (180, avg $85k), Marketing (70, avg $65k), Operations (50, avg $55k). They give raises: HR (+10%), Sales (+5%), Engineering (+3%), Marketing (+8%), Operations (+6%). Two engineers leave (replaced by lower-paid juniors at $70k). What's the new overall average salary?",
+      "answer": "$70,280",
+      "category": "long_context"
+    },
+    {
+      "id": "long_b_002",
+      "question": "A school offers 3 languages: Spanish (200 students), French (150 students), German (100 students). Students can take multiple languages: 40 take Spanish and French, 30 take Spanish and German, 20 take French and German, 10 take all three. The school eliminates German. Of those taking German, 60% switch to Spanish, 30% to French, 10% drop language study. What's the new enrollment in each?",
+      "answer": "Spanish: 254 students, French: 193 students",
+      "category": "long_context"
+    },
+    {
+      "id": "long_b_003",
+      "question": "A factory produces widgets in 3 shifts. Morning (6am-2pm): 200 units at $5/unit cost. Afternoon (2pm-10pm): 180 units at $5.50/unit. Night (10pm-6am): 150 units at $7/unit (night premium). They sell all widgets at $12/unit. If they eliminate the night shift and distribute production to the other two shifts (increasing each by 20%), what's the new daily profit?",
+      "answer": "$3,296 (vs $3,290 originally, a $6 increase)",
+      "category": "long_context"
+    },
+    {
+      "id": "long_b_004",
+      "question": "A subscription service has three tiers: Basic ($10/month, 1,000 users), Premium ($25/month, 500 users), Enterprise ($100/month, 100 users). Costs: Basic ($3/user), Premium ($8/user), Enterprise ($40/user). They're considering eliminating Basic and offering current Basic users Premium at $15/month. If 60% accept and 40% cancel, what's the revenue change?",
+      "answer": "$500 increase ($27,000 new total vs $26,500 old)",
+      "category": "long_context"
+    },
+    {
+      "id": "long_b_005",
+      "question": "A marathon runner's pace: Miles 1-10 at 8 min/mile, miles 11-20 at 8.5 min/mile, miles 21-26.2 at 9 min/mile. They take a 5-minute water break at mile 13 and a 3-minute break at mile 20. What's their total finish time?",
+      "answer": "3:47:48 (227.8 minutes)",
+      "category": "long_context"
+    },
+    {
+      "id": "amb_b_001",
+      "question": "Three boxes contain: Box A (2 gold coins), Box B (2 silver coins), Box C (1 gold, 1 silver). Labels are all wrong. You can draw one coin from one box. Which box do you choose to identify all boxes?",
+      "answer": "Draw from the box labeled 'mixed' - it contains either both gold or both silver",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_b_002",
+      "question": "You have 12 identical-looking balls, one weighs different (heavier or lighter). Using a balance scale exactly 3 times, can you identify which ball is different AND whether it's heavier or lighter?",
+      "answer": "Yes (divide into groups of 4, weigh, subdivide based on results)",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_b_003",
+      "question": "A farmer needs to cross a river with a fox, chicken, and grain. The boat holds only the farmer and one item. If left alone, the fox eats the chicken, and the chicken eats the grain. What's the solution?",
+      "answer": "Take chicken across, return empty, take fox across, bring chicken back, take grain across, return empty, take chicken across",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_b_004",
+      "question": "You're in a room with 3 light switches. One controls a light in another room. You can flip switches but can only enter the other room once. How do you determine which switch controls the light?",
+      "answer": "Turn switch 1 on for 10 minutes, turn off. Turn switch 2 on. Enter room. On=switch 2, warm off=switch 1, cold off=switch 3",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_b_005",
+      "question": "Four people need to cross a bridge at night with one flashlight. Max 2 people at once. Times: A=1min, B=2min, C=5min, D=10min. Two people move at the slower person's pace. Minimize total time.",
+      "answer": "17 minutes (A+B cross, A returns, C+D cross, B returns, A+B cross)",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "noise_b_001",
+      "question": "A recpe calls for 2.5 cups flower (wait, that's flour), 1 cup suger (sugar), and 3 egs (eggs). To make dubble (double) the recipe, how much flour needed?",
+      "answer": "5 cups",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_b_002",
+      "question": "Calculate the are - no wait, I mean area - of a trinagle: base = 12cm, hight = 8cm (formula: 1/2 * base * height)",
+      "answer": "48 square cm",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_b_003",
+      "question": "A train travels at 80 mph, or was it 90 mph, actually the problem says 85 mph. It travels for 3 hours. Distance covered?",
+      "answer": "255 miles",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_b_004",
+      "question": "Investement: $10,000 at 5% anual (annual) interest, compunded (compounded) yearly. Value after 3 years? (Formula: A = P(1+r)^t)",
+      "answer": "$11,576.25",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_b_005",
+      "question": "A store has 450 items, no wait 480, actually let's say 475 items in stock. They sell 120 items. How many remain? [Note: use the MIDDLE number]",
+      "answer": "360",
+      "category": "noisy_input"
+    },
+    {
+      "id": "msr_011",
+      "question": "A number sequence: 1, 1, 2, 3, 5, 8, 13, 21. What's the 15th number in this sequence?",
+      "answer": "610",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_012",
+      "question": "A password must have: 8-12 characters, at least 2 uppercase, at least 2 numbers, at least 1 special character (!@#$), no repeated characters. Is 'Pass2024!A' valid?",
+      "answer": "No (only 10 characters, and 's' is repeated)",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "msr_013",
+      "question": "A dice is rolled 3 times. What's the probability of getting exactly two 6s?",
+      "answer": "25/216 (approximately 11.57%)",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "plan_009",
+      "question": "You manage a parking lot with 100 spaces. Current rates: $5/hour for first 2 hours, $3/hour after. Average stay: 3 hours. You're considering flat $10 for up to 4 hours. If utilization stays the same (60 cars/day), which is more profitable?",
+      "answer": "New rate: $600/day vs Old rate: $660/day - Keep current pricing",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "plan_010",
+      "question": "A software project has dependencies: Module A (5 days), Module B (3 days, needs A), Module C (4 days, needs A), Module D (2 days, needs B and C), Testing (3 days, needs D). You have 2 developers. What's the minimum project time?",
+      "answer": "14 days (A: 5, then B and C parallel: 4, then D: 2, then Testing: 3)",
+      "category": "planning_tasks"
+    },
+    {
+      "id": "long_b_006",
+      "question": "An airline has 3 fare classes: Economy (200 seats, $200 avg), Premium (50 seats, $500 avg), Business (20 seats, $1200 avg). Current load: Economy 90%, Premium 70%, Business 60%. They're testing increasing Economy price by $30, expecting 5% fewer sales. Should they?",
+      "answer": "No. Current revenue: $51,500. New: $49,645. Loss of $1,855",
+      "category": "long_context"
+    }
+  ],
+  "metadata": {
+    "version": "2.0.0",
+    "creation_date": "2025-12-12",
+    "validation_status": "challenging",
+    "difficulty": "hard",
+    "expected_baseline_accuracy": "35-55%",
+    "languages": ["en"],
+    "domain": "complex_reasoning"
+  }
+}

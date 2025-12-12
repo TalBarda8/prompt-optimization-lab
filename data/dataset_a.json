@@ -1,0 +1,475 @@
+{
+  "dataset_id": "dataset_a_v2_challenging",
+  "dataset_type": "complex_qa",
+  "total_samples": 90,
+  "categories": [
+    "ambiguous_queries",
+    "adversarial_questions",
+    "noisy_input",
+    "multi_step_reasoning",
+    "long_context",
+    "factual_knowledge"
+  ],
+  "samples": [
+    {
+      "id": "amb_001",
+      "question": "If John runs faster than Mary, and Mary runs at the same speed as Tom on Mondays but slower on Wednesdays, who is the fastest runner?",
+      "answer": "Cannot determine without knowing the day",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_002",
+      "question": "A bat and ball cost $1.10 total. The bat costs $1.00 more than the ball. What does the ball cost?",
+      "answer": "$0.05",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_003",
+      "question": "If all roses are red and some red things are flowers, are all roses flowers?",
+      "answer": "Cannot be determined from the given premises",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_004",
+      "question": "A man points to a photo and says 'Brothers and sisters I have none, but that man's father is my father's son.' Who is in the photo?",
+      "answer": "His son",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_005",
+      "question": "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?",
+      "answer": "5 minutes",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_006",
+      "question": "In a room with 10 people, everyone shakes hands with everyone else exactly once. How many handshakes occur?",
+      "answer": "45",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_007",
+      "question": "If you have a 5-liter jug and a 3-liter jug, how can you measure exactly 4 liters?",
+      "answer": "Fill 5L, pour into 3L (leaving 2L), empty 3L, pour 2L into 3L, fill 5L again, pour into 3L until full (1L poured), leaving 4L in 5L jug",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_008",
+      "question": "A farmer has 17 sheep. All but 9 die. How many sheep are left?",
+      "answer": "9",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_009",
+      "question": "If you're running a race and you pass the person in second place, what place are you in?",
+      "answer": "Second place",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "amb_010",
+      "question": "A doctor has a brother, but the brother says he has no brother. How is this possible?",
+      "answer": "The doctor is female",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "adv_001",
+      "question": "The population of City X increased by 20% in 2020, then decreased by 20% in 2021. What was the net change?",
+      "answer": "4% decrease",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_002",
+      "question": "A shop advertises '50% off everything, plus an additional 50% off!' What's the total discount?",
+      "answer": "75%",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_003",
+      "question": "Mount Everest was discovered in 1856. What was the tallest mountain before that?",
+      "answer": "Mount Everest (it existed before being discovered)",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_004",
+      "question": "If there are 10 fish in a tank and 5 drown, how many are left?",
+      "answer": "10 (fish cannot drown)",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_005",
+      "question": "A plane crashes exactly on the border of two countries. Where do they bury the survivors?",
+      "answer": "Nowhere (you don't bury survivors)",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_006",
+      "question": "If you have a bowl with 6 apples and you take away 4, how many do you have?",
+      "answer": "4 (the ones you took)",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_007",
+      "question": "A rooster lays an egg on the peak of a triangular roof. Which way does it roll?",
+      "answer": "Roosters don't lay eggs",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_008",
+      "question": "How many months have 28 days?",
+      "answer": "12 (all months have at least 28 days)",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_009",
+      "question": "If a red house is made of red bricks, and a blue house is made of blue bricks, what is a greenhouse made of?",
+      "answer": "Glass",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "adv_010",
+      "question": "An electric train is traveling north at 100 mph. The wind is blowing east at 10 mph. Which way does the smoke blow?",
+      "answer": "There is no smoke (electric train)",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "noise_001",
+      "question": "Extact the daet from teh follwing: 'The meetng is schedled for Januray 15th, 2024 at 3pm in confrence room B.'",
+      "answer": "January 15, 2024",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_002",
+      "question": "What is the reslt of 237 plus 185, minsu 42, then multipyl by 2? (Note: some numbers may be incorrect)",
+      "answer": "760",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_003",
+      "question": "The product costs $49.99, wait no sorry, it's actually $59.99, or was it $54.99? The final price after a 10% discount is what?",
+      "answer": "$49.49 (assuming $54.99 is correct)",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_004",
+      "question": "Extract the email: 'Contct us at support@@company..com or maybe support@company.com, actually it's sales@company.com for inquiries.'",
+      "answer": "sales@company.com",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_005",
+      "question": "Calculate: (12 + 8) * 3 - ERROR - wait that's wrong, it should be (12 + 8) * 3 / 2 equals?",
+      "answer": "30",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_006",
+      "question": "The temperature today is 75F, no wait 72F, sorry I meant 78F degrees. If it increases by 15%, what will it be?",
+      "answer": "89.7F",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_007",
+      "question": "Identfy the city: 'We are travling to Los Angeles, I mean San Diego, actually we're going to San Francisco for the conferance.'",
+      "answer": "San Francisco",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_008",
+      "question": "The meeting is scheduled for [REDACTED] or maybe Tuesday at 2pm or Wednesday at 3pm. What time is the meeting?",
+      "answer": "Cannot determine (conflicting information)",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_009",
+      "question": "Caculat the ara of a rectngle: legnth = 12m (OR WAS IT 15m?) and wdth = 8m.",
+      "answer": "96 or 120 square meters (ambiguous)",
+      "category": "noisy_input"
+    },
+    {
+      "id": "noise_010",
+      "question": "The company has 500 employes, no 450, actually closer to 480 employees. If they hire 20 more, how many total?",
+      "answer": "500",
+      "category": "noisy_input"
+    },
+    {
+      "id": "multi_001",
+      "question": "A store sells notebooks for $3 each. If you buy 10, you get a 15% discount. If you buy 20, you get a 25% discount. How much do you save by buying 20 instead of 10?",
+      "answer": "$7.50",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "multi_002",
+      "question": "Alice is 3 years older than Bob. Bob is twice as old as Charlie. If Charlie is 7, how old will Alice be in 5 years?",
+      "answer": "22 years old",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "multi_003",
+      "question": "A tank fills at 12L/min and drains at 5L/min. Starting empty, after 10 minutes the drain is closed. How much longer to fill the remaining space if the tank holds 150L?",
+      "answer": "8.57 minutes",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "multi_004",
+      "question": "Three workers (A, B, C) can complete a job in 6, 8, and 12 days respectively. If they work together, how long will it take?",
+      "answer": "2.67 days",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "multi_005",
+      "question": "A number is doubled, then increased by 5, then divided by 3, resulting in 9. What was the original number?",
+      "answer": "11",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "multi_006",
+      "question": "If 3 cats can catch 3 mice in 3 minutes, how many cats are needed to catch 100 mice in 50 minutes?",
+      "answer": "6 cats",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "multi_007",
+      "question": "A car uses 8L of gas per 100km. Gas costs $1.50/L. How much does it cost to drive 350km?",
+      "answer": "$42",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "multi_008",
+      "question": "A restaurant bill is $85. Tax is 8%, and you want to leave a 20% tip on the pre-tax amount. What's the total?",
+      "answer": "$108.80",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "multi_009",
+      "question": "A train leaves Station A at 2pm going 60mph. Another leaves Station B (240 miles away) at 3pm going 80mph toward Station A. When do they meet?",
+      "answer": "4:43pm",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "multi_010",
+      "question": "You invest $1000 at 5% annual interest compounded monthly. What's the value after 2 years?",
+      "answer": "$1104.94",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "long_001",
+      "question": "In a study of 200 participants, 120 preferred coffee, 90 preferred tea, 40 preferred both, and the rest preferred neither. Participants who preferred coffee were then divided into two groups: those who add sugar (70% of coffee drinkers) and those who don't. Of those who add sugar, 60% also add milk. How many participants add both sugar and milk to their coffee?",
+      "answer": "50 participants",
+      "category": "long_context"
+    },
+    {
+      "id": "long_002",
+      "question": "A company has three departments: Sales (45 employees), Marketing (30 employees), and IT (25 employees). The average salary in Sales is $60,000, in Marketing is $55,000, and in IT is $75,000. If the company gives a 5% raise to Sales, 8% to Marketing, and 3% to IT, what is the new overall average salary across all departments?",
+      "answer": "$62,950",
+      "category": "long_context"
+    },
+    {
+      "id": "long_003",
+      "question": "Sarah starts with $500. She spends 20% on groceries, then receives $100 as a gift. She invests 30% of her new total at 6% annual return for 1 year, while keeping the rest in cash. After 1 year, she spends $150. How much money does she have left?",
+      "answer": "$283.80",
+      "category": "long_context"
+    },
+    {
+      "id": "long_004",
+      "question": "A school has 800 students. 60% are in high school, 30% in middle school, and 10% in elementary. Of the high school students, 40% take Spanish, 35% take French, and 25% take German. Of those taking Spanish, 30% also take an advanced literature class. How many students take both Spanish and advanced literature?",
+      "answer": "58 students",
+      "category": "long_context"
+    },
+    {
+      "id": "long_005",
+      "question": "A recipe serves 4 people and requires: 2 cups flour, 3 eggs, 1 cup sugar, 0.5 cups butter. You want to serve 14 people. However, you only have 8 eggs and 3 cups of sugar. What's the maximum number of people you can serve with these constraints?",
+      "answer": "10 people",
+      "category": "long_context"
+    },
+    {
+      "id": "long_006",
+      "question": "A bookstore has 1,200 books across 4 categories: Fiction (40%), Non-fiction (30%), Children's (20%), and Technical (10%). Fiction books are discounted by 25%, Non-fiction by 15%, Children's by 30%, and Technical books have no discount. If the average original price is $20 per book, what's the total revenue if all books sell?",
+      "answer": "$19,560",
+      "category": "long_context"
+    },
+    {
+      "id": "long_007",
+      "question": "In a survey of 500 people about streaming services: 300 use Netflix, 250 use Amazon Prime, 200 use Disney+, 150 use both Netflix and Prime, 100 use both Netflix and Disney+, 80 use both Prime and Disney+, and 50 use all three. How many people use exactly one streaming service?",
+      "answer": "170 people",
+      "category": "long_context"
+    },
+    {
+      "id": "long_008",
+      "question": "A project has 5 phases. Phase 1 takes 10 days. Each subsequent phase takes 20% longer than the previous one. After Phase 3 is complete, the team size doubles, making each subsequent phase 30% faster. How long does the entire project take?",
+      "answer": "53.86 days",
+      "category": "long_context"
+    },
+    {
+      "id": "long_009",
+      "question": "A store sells items in three categories: Electronics (average $200, 15% profit margin), Clothing (average $50, 40% profit margin), and Food (average $10, 25% profit margin). They sell 100 Electronics items, 300 Clothing items, and 500 Food items per month. What's the total monthly profit?",
+      "id": "long_009",
+      "answer": "$10,250",
+      "category": "long_context"
+    },
+    {
+      "id": "long_010",
+      "question": "A city's population is 500,000. It grows by 2% annually for 3 years. Then, due to economic changes, it shrinks by 1.5% annually for the next 2 years. In year 6, it grows by 3%. What's the population at the end of year 6?",
+      "answer": "531,847",
+      "category": "long_context"
+    },
+    {
+      "id": "fact_001",
+      "question": "What element has atomic number 79 and is commonly used in jewelry?",
+      "answer": "Gold",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_002",
+      "question": "Which planet in our solar system has the most moons?",
+      "answer": "Saturn",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_003",
+      "question": "What is the only country that is also a continent?",
+      "answer": "Australia",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_004",
+      "question": "Who wrote the novel '1984'?",
+      "answer": "George Orwell",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_005",
+      "question": "What is the smallest prime number greater than 10?",
+      "answer": "11",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_006",
+      "question": "In what year did the first human land on the moon?",
+      "answer": "1969",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_007",
+      "question": "What is the chemical formula for table salt?",
+      "answer": "NaCl",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_008",
+      "question": "Which programming language was created by Guido van Rossum?",
+      "answer": "Python",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_009",
+      "question": "What is the capital of Canada?",
+      "answer": "Ottawa",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_010",
+      "question": "How many sides does a dodecagon have?",
+      "answer": "12",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_011",
+      "question": "What is the largest desert in the world?",
+      "answer": "Antarctic Desert",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_012",
+      "question": "Who painted 'The Starry Night'?",
+      "answer": "Vincent van Gogh",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_013",
+      "question": "What is the speed of sound in air at 20°C (approximately)?",
+      "answer": "343 meters per second",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_014",
+      "question": "Which organ in the human body produces insulin?",
+      "answer": "Pancreas",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "fact_015",
+      "question": "What is the binary representation of the decimal number 13?",
+      "answer": "1101",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "adv_011",
+      "question": "Two fathers and two sons go fishing. They catch exactly 3 fish, and each person gets one fish. How is this possible?",
+      "answer": "There are only 3 people: grandfather, father, and son",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "amb_011",
+      "question": "Mary's father has 5 daughters: Nana, Nene, Nini, Nono. What's the 5th daughter's name?",
+      "answer": "Mary",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "multi_011",
+      "question": "A store has a 'buy 2 get 1 free' offer. If items cost $10 each and you want 15 items, how much do you pay?",
+      "answer": "$100",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "noise_011",
+      "question": "Calcuate: 145 + 237 - 89 + 56 = ? (note: there might be a typo in one numbre)",
+      "answer": "349",
+      "category": "noisy_input"
+    },
+    {
+      "id": "long_011",
+      "question": "A gym has 300 members. 180 use weights, 150 use cardio machines, 120 use both. Members pay $50/month. Those who use both get a $10 discount. What's the monthly revenue?",
+      "answer": "$13,800",
+      "category": "long_context"
+    },
+    {
+      "id": "fact_016",
+      "question": "What is the square root of 144?",
+      "answer": "12",
+      "category": "factual_knowledge"
+    },
+    {
+      "id": "adv_012",
+      "question": "If you overtake the last person in a race, what position are you in?",
+      "answer": "Impossible (cannot overtake the last person)",
+      "category": "adversarial_questions"
+    },
+    {
+      "id": "amb_012",
+      "question": "A woman has two children. One is a boy born on a Tuesday. What's the probability the other is a boy?",
+      "answer": "13/27 (approximately 48.1%)",
+      "category": "ambiguous_queries"
+    },
+    {
+      "id": "multi_012",
+      "question": "You have $100. You lose 20%, then gain 20%. How much do you have?",
+      "answer": "$96",
+      "category": "multi_step_reasoning"
+    },
+    {
+      "id": "noise_012",
+      "question": "The tempearture is 25C (or maybe 23C, could be 27C). Convert the FIRST mentioned temperature to Fahrenheit.",
+      "answer": "77F",
+      "category": "noisy_input"
+    }
+  ],
+  "metadata": {
+    "version": "2.0.0",
+    "creation_date": "2025-12-12",
+    "validation_status": "challenging",
+    "difficulty": "medium-hard",
+    "expected_baseline_accuracy": "40-60%",
+    "languages": ["en"],
+    "domain": "general_reasoning"
+  }
+}

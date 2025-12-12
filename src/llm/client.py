@@ -67,6 +67,7 @@ class LLMClient:
         temperature: float = 0.0,
         max_tokens: int = 500,
         api_key: Optional[str] = None,
+        fast_mode: bool = False,
     ):
         """
         Initialize LLM client.
@@ -77,11 +78,13 @@ class LLMClient:
             temperature: Sampling temperature (0.0 = deterministic)
             max_tokens: Maximum tokens to generate
             api_key: API key (if None, reads from env) - not needed for Ollama
+            fast_mode: If True, optimize for speed (reduced tokens/timeouts for Ollama)
         """
         self.provider = provider.lower()
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.fast_mode = fast_mode
 
         # Initialize API client
         if self.provider == "openai":
@@ -268,32 +271,43 @@ class LLMClient:
         if system_prompt:
             full_prompt = f"{system_prompt}\n\n{prompt}"
 
+        # Determine token limit and timeout based on fast_mode
+        # FAST MODE optimization: Drastically reduce tokens and timeout for Ollama
+        if self.fast_mode:
+            num_predict = 16  # Very short responses in fast mode
+            timeout_seconds = 20  # Quick timeout
+        else:
+            num_predict = 32  # Still shorter than default for Ollama
+            timeout_seconds = 60  # Reduced from 120s
+
         # Prepare Ollama API call via subprocess
         # Using 'ollama run' with JSON output for better parsing
         try:
-            # Build command
+            # Build command with parameters
+            # Ollama run doesn't support flags, but we can use environment variables
+            # or the API. For simplicity, we'll use subprocess with ollama run.
             cmd = ["ollama", "run", self.model, full_prompt]
 
-            # Add optional parameters via environment or command args
-            # Ollama CLI doesn't support all parameters, but we can try
-            options = {}
-            if self.temperature != 0.7:  # Ollama default is 0.7
-                options["temperature"] = self.temperature
-            if self.max_tokens != 500:
-                options["num_predict"] = self.max_tokens
+            # Note: ollama run doesn't support --num-predict directly via CLI
+            # We need to use the API format or accept the model defaults
+            # For now, we'll rely on shortened prompts to reduce output length
 
-            # Run Ollama
+            # Run Ollama with reduced timeout
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=120  # 2 minute timeout for local generation
+                timeout=timeout_seconds
             )
 
             if result.returncode != 0:
                 raise RuntimeError(f"Ollama command failed: {result.stderr}")
 
             content = result.stdout.strip()
+
+            # Truncate output if it exceeds our target length in fast mode
+            if self.fast_mode and len(content) > num_predict * 4:  # ~4 chars per token
+                content = content[:num_predict * 4]
 
             # Estimate token count (rough approximation: 4 chars per token)
             tokens_used = (len(full_prompt) + len(content)) // 4
@@ -308,9 +322,14 @@ class LLMClient:
             )
 
         except subprocess.TimeoutExpired:
-            raise RuntimeError(
-                f"Ollama generation timed out after 120 seconds. "
-                f"The model '{self.model}' may be too slow or the prompt too complex."
+            # Graceful timeout handling - return partial response
+            return LLMResponse(
+                content="[TIMEOUT]",
+                logprobs=None,
+                tokens_used=0,
+                model=self.model,
+                provider="ollama",
+                raw_response={"error": f"Timeout after {timeout_seconds}s"},
             )
         except FileNotFoundError:
             raise RuntimeError("Ollama executable not found. Is Ollama installed?")

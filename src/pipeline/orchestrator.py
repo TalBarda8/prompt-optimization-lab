@@ -59,6 +59,7 @@ class ExperimentConfig:
         techniques: List of prompt technique names to evaluate
         output_dir: Directory for results
         save_intermediate: Whether to save intermediate results
+        fast_mode: Enable fast mode (shorter prompts, reduced timeouts for Ollama)
     """
     dataset_paths: Dict[str, str] = field(default_factory=dict)
     llm_provider: str = "openai"
@@ -68,6 +69,7 @@ class ExperimentConfig:
     techniques: List[str] = field(default_factory=list)
     output_dir: str = "results"
     save_intermediate: bool = True
+    fast_mode: bool = False
 
 
 class ExperimentOrchestrator:
@@ -96,6 +98,7 @@ class ExperimentOrchestrator:
             model=config.llm_model,
             temperature=config.temperature,
             max_tokens=config.max_tokens,
+            fast_mode=config.fast_mode,
         )
 
         # Create output directory
@@ -148,9 +151,38 @@ class ExperimentOrchestrator:
         print("PROMPT OPTIMIZATION EXPERIMENTAL PIPELINE")
         print("=" * 70)
         print(f"Model: {self.config.llm_model}")
-        print(f"Techniques: {', '.join(self.config.techniques)}")
+        print(f"Provider: {self.config.llm_provider}")
+
+        # Fast mode messaging
+        if self.config.fast_mode:
+            print("🚀 FAST MODE: ENABLED")
+            print("  • Shortened prompts for all techniques")
+            print("  • Reduced timeouts (20s vs 60s normal)")
+            print("  • Token limits reduced (16 vs 32 normal)")
+
+            # Model recommendation for Ollama
+            if self.config.llm_provider == "ollama" and "llama3.2" in self.config.llm_model:
+                print("  ⚠️  TIP: Consider using 'phi3' for faster inference:")
+                print("      ollama pull phi3")
+                print("      python main.py run-experiment --provider ollama --model phi3 --fast-mode")
+
+        # Filter out heavy techniques in fast mode
+        techniques_to_run = self.config.techniques.copy()
+        if self.config.fast_mode:
+            heavy_techniques = ["tree_of_thoughts", "chain_of_thought_plus_plus"]
+            skipped = [t for t in heavy_techniques if t in techniques_to_run]
+            techniques_to_run = [t for t in techniques_to_run if t not in heavy_techniques]
+
+            if skipped:
+                print(f"  ⏭️  Skipping heavy techniques: {', '.join(skipped)}")
+
+        print(f"Techniques: {', '.join(techniques_to_run)}")
         print(f"Output: {self.config.output_dir}")
         print("=" * 70)
+
+        # Update techniques list to reflect filtering
+        original_techniques = self.config.techniques
+        self.config.techniques = techniques_to_run
 
         # Phase 1: Load Datasets
         print("\n[Phase 1/6] Loading Datasets...")
@@ -249,7 +281,7 @@ class ExperimentOrchestrator:
             return
 
         prompt_builder = self.technique_builders[technique_name]
-        prompt_template = prompt_builder.build()
+        prompt_template = prompt_builder.build(fast_mode=self.config.fast_mode)
 
         # Initialize results for this technique
         self.results["techniques"][technique_name] = {

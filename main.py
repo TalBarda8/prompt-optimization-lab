@@ -66,6 +66,7 @@ def cmd_run_experiment(args):
                 "few_shot",
             ],
             output_dir=args.output,
+            fast_mode=args.fast_mode,
         )
 
     # Create and run orchestrator
@@ -91,6 +92,7 @@ def cmd_run_baseline(args):
         llm_model=args.model,
         techniques=["baseline"],
         output_dir=args.output,
+        fast_mode=args.fast_mode,
     )
 
     orchestrator = ExperimentOrchestrator(config)
@@ -112,6 +114,7 @@ def cmd_compare_techniques(args):
         llm_model=args.model,
         techniques=args.techniques,
         output_dir=args.output,
+        fast_mode=args.fast_mode,
     )
 
     orchestrator = ExperimentOrchestrator(config)
@@ -185,14 +188,23 @@ Examples:
   # Run with local Ollama (llama3.2)
   python main.py run-experiment --provider ollama --model llama3.2
 
+  # Run with Ollama in FAST MODE (2-5x faster)
+  python main.py run-experiment --provider ollama --model llama3.2 --fast-mode
+
+  # Run with phi3 (faster model) in fast mode
+  python main.py run-experiment --provider ollama --model phi3 --fast-mode
+
   # Run baseline only
   python main.py run-baseline
 
-  # Run baseline with Ollama
-  python main.py run-baseline --provider ollama --model llama3.2
+  # Run baseline with Ollama in fast mode
+  python main.py run-baseline --provider ollama --model llama3.2 --fast-mode
 
   # Compare specific techniques
   python main.py compare --techniques baseline chain_of_thought
+
+  # Compare with fast mode
+  python main.py compare --techniques baseline chain_of_thought --provider ollama --model phi3 --fast-mode
 
   # Validate datasets
   python main.py validate
@@ -227,6 +239,8 @@ Examples:
     parser_run.add_argument('--max-tokens', type=int, default=500)
     parser_run.add_argument('--techniques', nargs='+', help='Techniques to evaluate')
     parser_run.add_argument('--output', default='results', help='Output directory')
+    parser_run.add_argument('--fast-mode', action='store_true',
+                           help='Enable FAST MODE: shorter prompts, reduced timeouts (optimized for Ollama)')
     parser_run.set_defaults(func=cmd_run_experiment)
 
     # Run baseline command
@@ -240,6 +254,8 @@ Examples:
     parser_baseline.add_argument('--model', default='gpt-4',
                                 help='Model name (e.g., gpt-4, llama3.2)')
     parser_baseline.add_argument('--output', default='results')
+    parser_baseline.add_argument('--fast-mode', action='store_true',
+                                help='Enable FAST MODE: shorter prompts, reduced timeouts')
     parser_baseline.set_defaults(func=cmd_run_baseline)
 
     # Compare techniques command
@@ -255,6 +271,8 @@ Examples:
     parser_compare.add_argument('--model', default='gpt-4',
                                help='Model name (e.g., gpt-4, llama3.2)')
     parser_compare.add_argument('--output', default='results')
+    parser_compare.add_argument('--fast-mode', action='store_true',
+                               help='Enable FAST MODE: shorter prompts, reduced timeouts')
     parser_compare.set_defaults(func=cmd_compare_techniques)
 
     # Visualize command

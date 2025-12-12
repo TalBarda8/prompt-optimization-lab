@@ -337,11 +337,11 @@ class TestOllamaClient:
 
         client = LLMClient(provider="ollama", model="llama3.2")
 
-        try:
-            response = client.generate("What is the capital of France?")
-            assert False, "Should have raised RuntimeError"
-        except RuntimeError as e:
-            assert "timed out" in str(e)
+        # In fast mode changes, timeout returns graceful response instead of raising
+        response = client.generate("What is the capital of France?")
+        assert response.content == "[TIMEOUT]"
+        assert response.tokens_used == 0
+        assert response.provider == "ollama"
 
     def test_parse_response_ollama(self):
         """Test parsing Ollama response."""

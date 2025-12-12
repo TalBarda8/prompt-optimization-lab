@@ -236,3 +236,111 @@ def calculate_average_perplexity(samples_logprobs: List[List[Dict[str, Any]]]) -
 
     perplexities = [calculate_perplexity_from_logprobs(lp) for lp in samples_logprobs if lp]
     return np.mean(perplexities) if perplexities else 0.0
+
+
+# ============================================================================
+# FALLBACK METRICS FOR MODELS WITHOUT LOGPROBS (e.g., Ollama)
+# ============================================================================
+
+def calculate_fallback_entropy(
+    predictions: List[str],
+    accuracy: float,
+    response_lengths: List[int]
+) -> float:
+    """
+    Calculate approximate entropy when logprobs are not available.
+
+    Uses response diversity and accuracy as proxy:
+    - Low accuracy + high diversity → high entropy (uncertain)
+    - High accuracy + low diversity → low entropy (confident)
+
+    Args:
+        predictions: List of predicted answers
+        accuracy: Overall accuracy score (0.0 to 1.0)
+        response_lengths: List of response lengths in characters
+
+    Returns:
+        Approximate entropy in bits (0-10 range)
+    """
+    if not predictions:
+        return 5.0  # Default moderate entropy
+
+    # Calculate response diversity (normalized unique answers ratio)
+    unique_predictions = len(set(pred.strip().lower() for pred in predictions))
+    total_predictions = len(predictions)
+    diversity = unique_predictions / total_predictions if total_predictions > 0 else 0.5
+
+    # Calculate length variance (normalized)
+    if response_lengths:
+        length_std = np.std(response_lengths)
+        avg_length = np.mean(response_lengths)
+        length_variance = (length_std / avg_length) if avg_length > 0 else 0.5
+    else:
+        length_variance = 0.5
+
+    # Entropy estimate: high when accuracy is low OR diversity is high
+    # Scale to typical entropy range (0-10 bits)
+    base_entropy = (1.0 - accuracy) * 6.0  # Uncertainty from errors
+    diversity_entropy = diversity * 4.0     # Uncertainty from diversity
+    variance_entropy = length_variance * 2.0  # Uncertainty from variance
+
+    entropy = (base_entropy + diversity_entropy + variance_entropy) / 3.0
+
+    # Clip to reasonable range
+    return min(max(entropy, 0.1), 10.0)
+
+
+def calculate_fallback_perplexity(entropy: float) -> float:
+    """
+    Calculate perplexity from fallback entropy.
+
+    Same formula as standard: Perplexity = 2^H
+
+    Args:
+        entropy: Estimated entropy in bits
+
+    Returns:
+        Perplexity value
+    """
+    return calculate_perplexity(entropy)
+
+
+def calculate_fallback_loss(
+    accuracy: float,
+    avg_response_length: int,
+    entropy: float,
+    perplexity: float,
+    alpha: float = 0.3,
+    beta: float = 0.2,
+    gamma: float = 0.2,
+    delta: float = 0.3,
+) -> float:
+    """
+    Calculate loss using fallback metrics.
+
+    Uses the same formula as standard loss calculation.
+
+    Args:
+        accuracy: Overall accuracy (0.0 to 1.0)
+        avg_response_length: Average response length
+        entropy: Fallback entropy estimate
+        perplexity: Fallback perplexity estimate
+        alpha: Weight for entropy
+        beta: Weight for length
+        gamma: Weight for perplexity
+        delta: Weight for accuracy
+
+    Returns:
+        Composite loss value
+    """
+    return calculate_loss(
+        entropy=entropy,
+        response_length=avg_response_length,
+        perplexity=perplexity,
+        accuracy=accuracy,
+        alpha=alpha,
+        beta=beta,
+        gamma=gamma,
+        delta=delta,
+        normalize=True,
+    )

@@ -10,6 +10,9 @@ from .information_theory import (
     calculate_perplexity,
     calculate_loss,
     entropy_from_logprobs,
+    calculate_fallback_entropy,
+    calculate_fallback_perplexity,
+    calculate_fallback_loss,
 )
 from .accuracy import (
     calculate_accuracy,
@@ -24,6 +27,10 @@ __all__ = [
     "calculate_perplexity",
     "calculate_loss",
     "entropy_from_logprobs",
+    # Fallback metrics (for models without logprobs)
+    "calculate_fallback_entropy",
+    "calculate_fallback_perplexity",
+    "calculate_fallback_loss",
     # Accuracy metrics
     "calculate_accuracy",
     "calculate_exact_match",

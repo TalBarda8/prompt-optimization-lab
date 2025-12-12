@@ -25,8 +25,24 @@ from prompts import (
     RoleBasedPrompt,
     FewShotPrompt,
 )
-from metrics import calculate_entropy, calculate_perplexity, calculate_loss
+from metrics import (
+    calculate_entropy,
+    calculate_perplexity,
+    calculate_loss,
+    calculate_fallback_entropy,
+    calculate_fallback_perplexity,
+    calculate_fallback_loss,
+    calculate_accuracy,
+    calculate_dataset_accuracy,
+)
 from visualization import generate_visualization_report
+from .summary import (
+    print_experiment_summary,
+    print_phase_header,
+    print_progress,
+    generate_summary_dict,
+)
+from .experiment_evaluator import evaluate_technique, collect_dataset_results
 
 
 @dataclass
@@ -106,14 +122,16 @@ class ExperimentOrchestrator:
                 "techniques": config.techniques,
             },
             "datasets": {},
-            "evaluations": {},
-            "metrics": {},
-            "statistics": {},
+            "techniques": {},  # Per-technique results
+            "baseline_technique": "baseline",
+            "statistical_tests": {},
+            "summary": {},
             "metadata": {
                 "start_time": None,
                 "end_time": None,
                 "total_samples": 0,
                 "total_api_calls": 0,
+                "uses_fallback_metrics": False,
             },
         }
 
@@ -163,12 +181,23 @@ class ExperimentOrchestrator:
 
         self.results["metadata"]["end_time"] = datetime.now().isoformat()
 
-        print("\n" + "=" * 70)
-        print("PIPELINE COMPLETE")
-        print("=" * 70)
-        print(f"Results saved to: {self.output_path}")
-        print(f"Total API calls: {self.results['metadata']['total_api_calls']}")
-        print("=" * 70)
+        # Generate summary dictionary
+        self.results["summary"] = generate_summary_dict(self.results)
+
+        # Print human-readable summary
+        print_experiment_summary(
+            self.results,
+            model_name=self.config.llm_model,
+            show_top_mistakes=True,
+            top_k=5,
+        )
+
+        print(f"\n📁 Results saved to: {self.output_path}/experiment_results.json")
+        print(f"📊 Visualizations: {self.output_path}/figures/")
+        print(f"🔢 Total API calls: {self.results['metadata']['total_api_calls']}")
+
+        if self.results["metadata"]["uses_fallback_metrics"]:
+            print("\n⚠️  Note: Fallback metrics used (model doesn't provide logprobs)")
 
         return self.results
 
@@ -187,42 +216,134 @@ class ExperimentOrchestrator:
 
     def _run_baseline_evaluation(self):
         """Phase 2: Run baseline evaluation (if baseline in techniques)."""
-        if "baseline" in self.config.techniques:
-            print("  Running baseline technique...")
-            # Placeholder - actual implementation would call evaluator
-            self.results["evaluations"]["baseline"] = {
-                "status": "completed",
-                "timestamp": datetime.now().isoformat(),
-            }
-            print("    ✓ Baseline evaluation complete")
-        else:
+        if "baseline" not in self.config.techniques:
             print("  Skipping baseline (not in techniques list)")
+            return
+
+        print("  → Running baseline evaluation...")
+        self._evaluate_technique("baseline")
 
     def _run_prompt_optimization(self):
         """Phase 3: Run prompt optimization for all techniques."""
-        for technique in self.config.techniques:
-            if technique == "baseline":
-                continue  # Already handled in Phase 2
+        other_techniques = [t for t in self.config.techniques if t != "baseline"]
 
-            print(f"  Evaluating {technique}...")
-            # Placeholder - actual implementation would call evaluator
-            self.results["evaluations"][technique] = {
-                "status": "completed",
-                "timestamp": datetime.now().isoformat(),
-            }
-            print(f"    ✓ {technique} evaluation complete")
+        if not other_techniques:
+            print("  No optimization techniques specified")
+            return
+
+        print(f"  → Evaluating {len(other_techniques)} optimization technique(s)...")
+
+        for technique in other_techniques:
+            self._evaluate_technique(technique)
+
+    def _evaluate_technique(self, technique_name: str):
+        """
+        Evaluate a single technique across all datasets.
+
+        Args:
+            technique_name: Name of the technique to evaluate
+        """
+        # Get prompt builder
+        if technique_name not in self.technique_builders:
+            print(f"  ⚠️  Unknown technique: {technique_name}")
+            return
+
+        prompt_builder = self.technique_builders[technique_name]
+        prompt_template = prompt_builder.build()
+
+        # Initialize results for this technique
+        self.results["techniques"][technique_name] = {
+            "predictions": [],
+            "metrics": {},
+            "datasets_evaluated": [],
+        }
+
+        total_predictions = []
+
+        # Evaluate on each dataset
+        for dataset_name, dataset_info in self.results["datasets"].items():
+            dataset_path = dataset_info["path"]
+            dataset = load_dataset(dataset_path)
+
+            # Run evaluation
+            result = evaluate_technique(
+                llm_client=self.llm_client,
+                dataset=dataset,
+                prompt_template=prompt_template,
+                technique_name=technique_name,
+            )
+
+            # Update API call count
+            self.results["metadata"]["total_api_calls"] += result["successful_count"]
+
+            # Track if using fallback metrics
+            if not result["has_logprobs"]:
+                self.results["metadata"]["uses_fallback_metrics"] = True
+
+            # Store predictions
+            total_predictions.extend(result["predictions"])
+
+            # Store dataset-specific results
+            self.results["techniques"][technique_name]["datasets_evaluated"].append({
+                "dataset_name": dataset_name,
+                "metrics": result["metrics"],
+                "sample_count": result["sample_count"],
+            })
+
+        # Store all predictions
+        self.results["techniques"][technique_name]["predictions"] = total_predictions
+
+        # Calculate overall metrics (average across datasets)
+        self._calculate_technique_metrics(technique_name)
+
+        print(f"    ✓ {technique_name} complete")
+
+    def _calculate_technique_metrics(self, technique_name: str):
+        """
+        Calculate overall metrics for a technique across all datasets.
+
+        Args:
+            technique_name: Name of the technique
+        """
+        tech_data = self.results["techniques"][technique_name]
+        datasets_eval = tech_data["datasets_evaluated"]
+
+        if not datasets_eval:
+            return
+
+        # Average metrics across datasets
+        metrics = {}
+        metric_keys = datasets_eval[0]["metrics"].keys()
+
+        for key in metric_keys:
+            values = [d["metrics"][key] for d in datasets_eval if key in d["metrics"]]
+            if values:
+                if key in ["correct_count", "total_count", "avg_response_length"]:
+                    metrics[key] = sum(values)  # Sum for counts
+                else:
+                    metrics[key] = sum(values) / len(values)  # Average for ratios
+
+        tech_data["metrics"] = metrics
 
     def _calculate_metrics(self):
         """Phase 4: Calculate all metrics."""
-        print("  Calculating information-theoretic metrics...")
-        # Placeholder - actual metric calculation
-        self.results["metrics"] = {
-            "entropy": {},
-            "perplexity": {},
-            "loss": {},
-            "accuracy": {},
-        }
-        print("    ✓ Metrics calculated")
+        print("  → Metrics already calculated per-technique")
+        print("  → Aggregating final statistics...")
+
+        # All metrics are already calculated in _evaluate_technique
+        # This phase just aggregates and validates
+
+        total_techniques = len(self.results["techniques"])
+        total_with_fallback = sum(
+            1 for t in self.results["techniques"].values()
+            if t.get("metrics", {}).get("metrics_estimated", False)
+        )
+
+        print(f"    • Techniques evaluated: {total_techniques}")
+        if total_with_fallback > 0:
+            print(f"    • Using fallback metrics: {total_with_fallback}/{total_techniques}")
+
+        print("    ✓ All metrics computed")
 
     def _run_statistical_validation(self):
         """Phase 5: Run statistical tests."""

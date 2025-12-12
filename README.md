@@ -202,6 +202,72 @@ Weighted combination (default: α=0.3, β=0.2, γ=0.2, δ=0.3).
 - **95% Confidence Intervals**: Precision estimates
 - **Cohen's d**: Effect size calculation
 
+### Fallback Metrics (for Local LLMs)
+
+When using models that don't provide logprobs (e.g., Ollama):
+- **Entropy**: Estimated from response diversity and accuracy
+- **Perplexity**: Computed from estimated entropy
+- **Loss**: Uses fallback entropy/perplexity values
+
+These provide approximate but meaningful comparisons between techniques.
+
+## Interpreting Results
+
+### CLI Output
+
+After running an experiment, you'll see a comprehensive summary:
+
+```
+===============================
+ EXPERIMENT SUMMARY (llama3.2)
+===============================
+Baseline accuracy ........... 42.7%
+Chain-of-thought ............ 55.3%   (+12.6%)
+ReAct ....................... 50.1%   (+7.4%)
+Few-shot .................... 61.8%   (+19.1%)
+
+BEST TECHNIQUE: few-shot
+Improvement over baseline: +19.1%
+
+TOP MISTAKES:
+  1. Sample: sample_23
+     Q: What is the capital of France?
+     Expected: Paris
+     Got:      Lyon
+     Technique: Baseline
+```
+
+### JSON Results
+
+Complete results are saved to `results/experiment_results.json`:
+
+```json
+{
+  "techniques": {
+    "baseline": {
+      "metrics": {
+        "accuracy": 0.427,
+        "loss": 0.385,
+        "entropy": 3.24,
+        "perplexity": 9.45
+      },
+      "predictions": [...]
+    }
+  },
+  "summary": {
+    "best_technique": "few_shot",
+    "max_improvement": 19.1
+  }
+}
+```
+
+### Key Metrics to Watch
+
+- **Accuracy**: Higher is better (aim for >80%)
+- **Loss**: Lower is better (aim for <0.30)
+- **Entropy**: Lower indicates more confident responses
+- **Improvement**: Compare against baseline to quantify gains
+
 ## Visualizations
 
 The system automatically generates 12 publication-ready visualizations:

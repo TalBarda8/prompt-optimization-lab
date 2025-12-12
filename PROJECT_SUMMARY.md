@@ -309,6 +309,19 @@ jupyter notebook notebooks/
 jupyter lab notebooks/
 ```
 
+### Local LLM (Ollama)
+```bash
+# Install Ollama
+brew install ollama
+ollama pull llama3.2
+
+# Run experiment with local LLM (no API costs)
+python main.py run-experiment --provider ollama --model llama3.2
+
+# Run baseline with local LLM
+python main.py run-baseline --provider ollama --model llama3.2
+```
+
 ---
 
 ## 📈 Expected Results
@@ -330,7 +343,7 @@ Statistical significance: p < 0.001 with Bonferroni correction
 
 ### Core Technologies
 - **Language**: Python 3.9+
-- **LLM Providers**: OpenAI (GPT-4), Anthropic (Claude)
+- **LLM Providers**: OpenAI (GPT-4), Anthropic (Claude), Ollama (Local)
 - **Scientific**: NumPy, Pandas, SciPy
 - **Statistics**: StatsModels, scikit-learn
 - **Visualization**: Matplotlib, Seaborn, Plotly

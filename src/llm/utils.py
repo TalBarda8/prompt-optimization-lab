@@ -37,7 +37,7 @@ def parse_response(response: Any, provider: str = "openai") -> str:
 
     Args:
         response: Raw API response
-        provider: API provider ("openai" or "anthropic")
+        provider: API provider ("openai", "anthropic", or "ollama")
 
     Returns:
         Extracted text content
@@ -54,6 +54,12 @@ def parse_response(response: Any, provider: str = "openai") -> str:
             return response.content[0].text
         return str(response)
 
+    elif provider == "ollama":
+        # Ollama response structure (from subprocess)
+        if isinstance(response, dict) and 'stdout' in response:
+            return response['stdout'].strip()
+        return str(response)
+
     else:
         raise ValueError(f"Unknown provider: {provider}")
 
@@ -66,7 +72,7 @@ def extract_logprobs(response: Any, provider: str = "openai") -> Optional[List[D
 
     Args:
         response: Raw API response
-        provider: API provider
+        provider: API provider ("openai", "anthropic", or "ollama")
 
     Returns:
         List of logprobs dictionaries, or None if not available
@@ -91,6 +97,11 @@ def extract_logprobs(response: Any, provider: str = "openai") -> Optional[List[D
     elif provider == "anthropic":
         # Anthropic doesn't provide logprobs in the same way
         # Would need to use a different approach or API endpoint
+        return None
+
+    elif provider == "ollama":
+        # Ollama CLI doesn't provide logprobs
+        # Note: Ollama API (HTTP) may support logprobs in future versions
         return None
 
     else:

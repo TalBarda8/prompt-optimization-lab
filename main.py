@@ -179,11 +179,17 @@ Examples:
   # Create datasets
   python main.py create-datasets
 
-  # Run full experiment
+  # Run full experiment with OpenAI
   python main.py run-experiment --model gpt-4
+
+  # Run with local Ollama (llama3.2)
+  python main.py run-experiment --provider ollama --model llama3.2
 
   # Run baseline only
   python main.py run-baseline
+
+  # Run baseline with Ollama
+  python main.py run-baseline --provider ollama --model llama3.2
 
   # Compare specific techniques
   python main.py compare --techniques baseline chain_of_thought
@@ -213,8 +219,10 @@ Examples:
     parser_run.add_argument('--config', type=str, help='Path to config JSON file')
     parser_run.add_argument('--dataset-a', type=str, help='Path to Dataset A')
     parser_run.add_argument('--dataset-b', type=str, help='Path to Dataset B')
-    parser_run.add_argument('--provider', default='openai', choices=['openai', 'anthropic'])
-    parser_run.add_argument('--model', default='gpt-4', help='Model name')
+    parser_run.add_argument('--provider', default='openai', choices=['openai', 'anthropic', 'ollama'],
+                           help='LLM provider: openai, anthropic, or ollama (local)')
+    parser_run.add_argument('--model', default='gpt-4',
+                           help='Model name (e.g., gpt-4, claude-3-opus-20240229, llama3.2)')
     parser_run.add_argument('--temperature', type=float, default=0.0)
     parser_run.add_argument('--max-tokens', type=int, default=500)
     parser_run.add_argument('--techniques', nargs='+', help='Techniques to evaluate')
@@ -227,8 +235,10 @@ Examples:
         help='Run baseline evaluation only'
     )
     parser_baseline.add_argument('--dataset-a', type=str, help='Path to Dataset A')
-    parser_baseline.add_argument('--provider', default='openai')
-    parser_baseline.add_argument('--model', default='gpt-4')
+    parser_baseline.add_argument('--provider', default='openai', choices=['openai', 'anthropic', 'ollama'],
+                                help='LLM provider: openai, anthropic, or ollama (local)')
+    parser_baseline.add_argument('--model', default='gpt-4',
+                                help='Model name (e.g., gpt-4, llama3.2)')
     parser_baseline.add_argument('--output', default='results')
     parser_baseline.set_defaults(func=cmd_run_baseline)
 
@@ -240,8 +250,10 @@ Examples:
     parser_compare.add_argument('--techniques', nargs='+', required=True)
     parser_compare.add_argument('--dataset-a', type=str)
     parser_compare.add_argument('--dataset-b', type=str)
-    parser_compare.add_argument('--provider', default='openai')
-    parser_compare.add_argument('--model', default='gpt-4')
+    parser_compare.add_argument('--provider', default='openai', choices=['openai', 'anthropic', 'ollama'],
+                               help='LLM provider: openai, anthropic, or ollama (local)')
+    parser_compare.add_argument('--model', default='gpt-4',
+                               help='Model name (e.g., gpt-4, llama3.2)')
     parser_compare.add_argument('--output', default='results')
     parser_compare.set_defaults(func=cmd_compare_techniques)
 

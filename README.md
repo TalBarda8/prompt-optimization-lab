@@ -13,10 +13,12 @@ This project implements a rigorous scientific framework to evaluate 7 prompt eng
 **Key Features:**
 - 📊 **110 High-Quality Samples**: 75 Simple QA + 35 Multi-step Reasoning
 - 🎯 **7 Prompt Techniques**: Baseline, CoT, CoT++, ReAct, ToT, Role-Based, Few-Shot
+- 🤖 **Multiple LLM Backends**: OpenAI (GPT-4), Anthropic (Claude), Ollama (Local)
 - 📈 **Information-Theoretic Metrics**: Entropy, Perplexity, Composite Loss
 - 📉 **Statistical Validation**: T-tests, Wilcoxon, Bonferroni correction, CI
 - 📊 **12 Publication-Ready Visualizations**: Automatic chart generation
 - 🔬 **Complete Pipeline**: End-to-end automation from data to results
+- 💰 **Local LLM Support**: Run experiments without API costs using Ollama
 
 ## Quick Start
 
@@ -39,6 +41,52 @@ python main.py run-experiment --model gpt-4
 # 5. Analyze results
 python scripts/analyze_results.py
 ```
+
+## Local LLM Support (Ollama + Llama 3.2)
+
+Run experiments locally without API costs using Ollama!
+
+### Installation
+
+```bash
+# macOS / Linux
+brew install ollama
+
+# Or download from https://ollama.ai
+
+# Start Ollama service (if not auto-started)
+ollama serve
+
+# Pull the llama3.2 model
+ollama pull llama3.2
+```
+
+### Usage
+
+```bash
+# Run full experiment with Ollama
+python main.py run-experiment --provider ollama --model llama3.2
+
+# Run baseline with Ollama
+python main.py run-baseline --provider ollama --model llama3.2
+
+# Compare techniques with local LLM
+python main.py compare \
+  --techniques baseline chain_of_thought \
+  --provider ollama \
+  --model llama3.2
+```
+
+### Supported Models
+
+Any model available in Ollama can be used:
+- `llama3.2` (recommended, 3B parameters)
+- `llama3.1` (8B or 70B parameters)
+- `mistral` (7B parameters)
+- `codellama` (for code tasks)
+- See all models: `ollama list`
+
+**Note:** Ollama doesn't provide logprobs, so entropy/perplexity metrics will be estimated differently. Accuracy and loss metrics work normally.
 
 ## Project Structure
 
@@ -243,7 +291,10 @@ All samples validated against PRD specifications with token budgets and quality 
 
 **Core:**
 - Python 3.9+
-- OpenAI API key (GPT-4) or Anthropic API key (Claude)
+- **LLM Backend** (choose one):
+  - OpenAI API key (GPT-4) - Cloud
+  - Anthropic API key (Claude) - Cloud
+  - Ollama (llama3.2, mistral, etc.) - Local (no API key needed)
 - 8GB+ RAM
 - 5GB+ disk space
 
@@ -254,6 +305,9 @@ All samples validated against PRD specifications with token budgets and quality 
 - matplotlib, seaborn, plotly (visualization)
 - pytest, pytest-cov (testing)
 - jupyter, notebook (interactive analysis)
+
+**Optional for Local LLM:**
+- Ollama (`brew install ollama` on macOS/Linux)
 
 See `requirements.txt` for complete list with versions.
 

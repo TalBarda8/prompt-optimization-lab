@@ -201,6 +201,160 @@ class TestLLMResponse:
         assert response.logprobs[0]["token"] == "Hello"
 
 
+class TestOllamaClient:
+    """Test Ollama (local LLM) client."""
+
+    @patch('llm.client.shutil.which')
+    @patch('llm.client.subprocess.run')
+    def test_init_ollama(self, mock_subprocess, mock_which):
+        """Test Ollama client initialization."""
+        # Mock ollama being installed
+        mock_which.return_value = "/usr/local/bin/ollama"
+
+        # Mock ollama list command
+        mock_result = Mock()
+        mock_result.stdout = "llama3.2:latest\nllama3.1:latest"
+        mock_result.returncode = 0
+        mock_subprocess.return_value = mock_result
+
+        client = LLMClient(provider="ollama", model="llama3.2")
+
+        assert client.provider == "ollama"
+        assert client.model == "llama3.2"
+        assert client.client is None  # Ollama uses subprocess, not a client object
+
+    @patch('llm.client.shutil.which')
+    def test_init_ollama_not_installed(self, mock_which):
+        """Test Ollama initialization when not installed."""
+        # Mock ollama not being installed
+        mock_which.return_value = None
+
+        try:
+            client = LLMClient(provider="ollama", model="llama3.2")
+            assert False, "Should have raised RuntimeError"
+        except RuntimeError as e:
+            assert "Ollama is not installed" in str(e)
+            assert "brew install ollama" in str(e)
+
+    @patch('llm.client.shutil.which')
+    @patch('llm.client.subprocess.run')
+    def test_init_ollama_model_not_found(self, mock_subprocess, mock_which):
+        """Test Ollama initialization when model is not pulled."""
+        # Mock ollama being installed
+        mock_which.return_value = "/usr/local/bin/ollama"
+
+        # Mock ollama list command - model not in list
+        mock_result = Mock()
+        mock_result.stdout = "llama3.1:latest\nmistral:latest"
+        mock_result.returncode = 0
+        mock_subprocess.return_value = mock_result
+
+        try:
+            client = LLMClient(provider="ollama", model="llama3.2")
+            assert False, "Should have raised RuntimeError"
+        except RuntimeError as e:
+            assert "Model 'llama3.2' not found" in str(e)
+            assert "ollama pull llama3.2" in str(e)
+
+    @patch('llm.client.shutil.which')
+    @patch('llm.client.subprocess.run')
+    def test_generate_ollama(self, mock_subprocess, mock_which):
+        """Test Ollama generation."""
+        # Mock ollama being installed
+        mock_which.return_value = "/usr/local/bin/ollama"
+
+        # Mock ollama list command
+        list_result = Mock()
+        list_result.stdout = "llama3.2:latest"
+        list_result.returncode = 0
+
+        # Mock ollama run command
+        run_result = Mock()
+        run_result.stdout = "The capital of France is Paris."
+        run_result.stderr = ""
+        run_result.returncode = 0
+
+        # Setup side effect for multiple calls
+        mock_subprocess.side_effect = [list_result, run_result]
+
+        client = LLMClient(provider="ollama", model="llama3.2")
+        response = client.generate("What is the capital of France?")
+
+        assert response.content == "The capital of France is Paris."
+        assert response.provider == "ollama"
+        assert response.model == "llama3.2"
+        assert response.logprobs is None  # Ollama doesn't provide logprobs
+        assert response.tokens_used > 0  # Estimated token count
+
+    @patch('llm.client.shutil.which')
+    @patch('llm.client.subprocess.run')
+    def test_generate_ollama_with_system_prompt(self, mock_subprocess, mock_which):
+        """Test Ollama generation with system prompt."""
+        # Mock ollama being installed
+        mock_which.return_value = "/usr/local/bin/ollama"
+
+        # Mock ollama list command
+        list_result = Mock()
+        list_result.stdout = "llama3.2:latest"
+        list_result.returncode = 0
+
+        # Mock ollama run command
+        run_result = Mock()
+        run_result.stdout = "Paris"
+        run_result.stderr = ""
+        run_result.returncode = 0
+
+        # Setup side effect
+        mock_subprocess.side_effect = [list_result, run_result]
+
+        client = LLMClient(provider="ollama", model="llama3.2")
+        response = client.generate(
+            prompt="What is the capital of France?",
+            system_prompt="You are a helpful assistant. Be concise."
+        )
+
+        assert response.content == "Paris"
+        assert response.provider == "ollama"
+
+    @patch('llm.client.shutil.which')
+    @patch('llm.client.subprocess.run')
+    def test_generate_ollama_timeout(self, mock_subprocess, mock_which):
+        """Test Ollama generation timeout."""
+        # Mock ollama being installed
+        mock_which.return_value = "/usr/local/bin/ollama"
+
+        # Mock ollama list command
+        list_result = Mock()
+        list_result.stdout = "llama3.2:latest"
+        list_result.returncode = 0
+
+        # Setup side effect - timeout on run
+        import subprocess
+        mock_subprocess.side_effect = [
+            list_result,
+            subprocess.TimeoutExpired(cmd="ollama", timeout=120)
+        ]
+
+        client = LLMClient(provider="ollama", model="llama3.2")
+
+        try:
+            response = client.generate("What is the capital of France?")
+            assert False, "Should have raised RuntimeError"
+        except RuntimeError as e:
+            assert "timed out" in str(e)
+
+    def test_parse_response_ollama(self):
+        """Test parsing Ollama response."""
+        # Mock Ollama subprocess response
+        mock_response = {
+            'stdout': 'This is a test response from Ollama',
+            'stderr': ''
+        }
+
+        content = parse_response(mock_response, provider="ollama")
+        assert content == "This is a test response from Ollama"
+
+
 # Run tests if executed directly
 if __name__ == "__main__":
     import pytest

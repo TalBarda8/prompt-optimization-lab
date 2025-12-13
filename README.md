@@ -8,10 +8,10 @@ A comprehensive experimental framework for evaluating and optimizing LLM prompts
 
 ## Overview
 
-This project implements a rigorous scientific framework to evaluate 7 prompt engineering techniques across 110 carefully crafted samples, measuring improvements using mathematical metrics and validating results with statistical significance testing.
+This project implements a rigorous scientific framework to evaluate 7 prompt engineering techniques across 140 carefully crafted samples, measuring improvements using mathematical metrics and validating results with statistical significance testing.
 
 **Key Features:**
-- 📊 **110 High-Quality Samples**: 75 Simple QA + 35 Multi-step Reasoning
+- 📊 **140 High-Quality Samples**: 90 Complex QA + 50 Multi-step Reasoning
 - 🎯 **7 Prompt Techniques**: Baseline, CoT, CoT++, ReAct, ToT, Role-Based, Few-Shot
 - 🤖 **Multiple LLM Backends**: OpenAI (GPT-4), Anthropic (Claude), Ollama (Local)
 - 📈 **Information-Theoretic Metrics**: Entropy, Perplexity, Composite Loss
@@ -182,7 +182,7 @@ You'll see this message:
 
 ### Performance Comparison
 
-Based on testing with llama3.2 on 110 samples:
+Based on testing with llama3.2 on 140 samples:
 
 | Configuration | Time | Samples/min | Notes |
 |--------------|------|-------------|-------|
@@ -283,8 +283,8 @@ prompt-optimization-lab/
 │   └── pipeline_config.yaml    # Experiment configuration
 │
 ├── data/
-│   ├── dataset_a.json          # Simple QA (75 samples, 5 categories)
-│   └── dataset_b.json          # Multi-step Reasoning (35 samples, 4 categories)
+│   ├── dataset_a.json          # Complex QA (90 samples, 6 categories)
+│   └── dataset_b.json          # Multi-step Reasoning (50 samples, 6 categories)
 │
 ├── src/
 │   ├── data/                   # Dataset creation & validation
@@ -520,14 +520,14 @@ pytest tests/test_metrics.py -v
 
 ## Dataset Details
 
-### Dataset A: Simple QA (75 samples)
+### Dataset A: Complex QA (90 samples)
 - **factual_knowledge**: 18 samples (geography, science, history)
 - **basic_arithmetic**: 18 samples (percentage, operations)
 - **entity_extraction**: 18 samples (names, dates, locations)
 - **classification**: 12 samples (sentiment, topic)
 - **simple_reasoning**: 9 samples (logical deduction)
 
-### Dataset B: Multi-step Reasoning (35 samples)
+### Dataset B: Multi-step Reasoning (50 samples)
 - **mathematical_word_problems**: 11 samples (4-6 steps)
 - **logical_reasoning_chains**: 9 samples (5+ steps)
 - **planning_tasks**: 9 samples (3-5 steps)

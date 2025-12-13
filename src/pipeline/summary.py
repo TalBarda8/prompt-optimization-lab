@@ -2,10 +2,20 @@
 Experiment Summary Generator
 
 Generates human-readable summaries of experimental results for CLI output.
+Enhanced with Rich tables and ASCII bar charts for better visualization.
 """
 
 from typing import Dict, List, Any, Optional
 import numpy as np
+
+# Try to import Rich for enhanced terminal output
+try:
+    from rich.console import Console
+    from rich.table import Table
+    from rich.text import Text
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
 
 
 def print_experiment_summary(
@@ -16,6 +26,7 @@ def print_experiment_summary(
 ):
     """
     Print comprehensive experiment summary to console.
+    Enhanced with Rich tables and ASCII bar charts.
 
     Args:
         results: Experimental results dictionary
@@ -40,10 +51,6 @@ def print_experiment_summary(
     if baseline_name in techniques:
         baseline_acc = techniques[baseline_name].get("metrics", {}).get("accuracy", 0.0)
 
-    # Print accuracy table
-    print("\n📊 ACCURACY BY TECHNIQUE:")
-    print("-" * 80)
-
     # Sort techniques by accuracy
     sorted_techniques = sorted(
         techniques.items(),
@@ -51,23 +58,30 @@ def print_experiment_summary(
         reverse=True
     )
 
-    for tech_name, tech_data in sorted_techniques:
-        metrics = tech_data.get("metrics", {})
-        acc = metrics.get("accuracy", 0.0)
-        improvement = (acc - baseline_acc) * 100
+    # ========================================
+    # 1. RICH TABLE (or ASCII fallback)
+    # ========================================
+    print("\n📊 ACCURACY COMPARISON TABLE:")
+    print("-" * 80)
 
-        # Format technique name
-        display_name = tech_name.replace("_", " ").title()
-        if len(display_name) > 30:
-            display_name = display_name[:27] + "..."
+    if RICH_AVAILABLE:
+        _print_rich_accuracy_table(sorted_techniques, baseline_name, baseline_acc)
+    else:
+        _print_ascii_accuracy_table(sorted_techniques, baseline_name, baseline_acc)
 
-        # Print row
-        if tech_name == baseline_name:
-            print(f"  {display_name:32} ... {acc*100:5.1f}%  (baseline)")
-        elif improvement >= 0:
-            print(f"  {display_name:32} ... {acc*100:5.1f}%  (+{improvement:4.1f}%)")
-        else:
-            print(f"  {display_name:32} ... {acc*100:5.1f}%  ({improvement:5.1f}%)")
+    # ========================================
+    # 2. ASCII BAR CHART
+    # ========================================
+    print("\n📊 ACCURACY BAR CHART:")
+    print("-" * 80)
+    _print_ascii_bar_chart(sorted_techniques)
+
+    # ========================================
+    # 3. IMPROVEMENT OVER BASELINE
+    # ========================================
+    print("\n📈 IMPROVEMENT OVER BASELINE:")
+    print("-" * 80)
+    _print_improvements(sorted_techniques, baseline_name, baseline_acc)
 
     # Find best technique
     if sorted_techniques:
@@ -131,9 +145,191 @@ def print_experiment_summary(
     print("=" * 80 + "\n")
 
 
+def _print_rich_accuracy_table(sorted_techniques, baseline_name, baseline_acc):
+    """
+    Print Rich table with accuracy comparison.
+
+    Args:
+        sorted_techniques: List of (technique_name, technique_data) sorted by accuracy
+        baseline_name: Name of baseline technique
+        baseline_acc: Baseline accuracy value
+    """
+    console = Console()
+    table = Table(show_header=True, header_style="bold cyan")
+
+    # Add columns
+    table.add_column("Technique", style="white", width=30)
+    table.add_column("Accuracy (%)", justify="right", style="yellow")
+    table.add_column("Δ from Baseline", justify="right", style="white")
+    table.add_column("Loss", justify="right", style="magenta")
+    table.add_column("Entropy", justify="right", style="green")
+
+    # Add rows
+    for tech_name, tech_data in sorted_techniques:
+        metrics = tech_data.get("metrics", {})
+        acc = metrics.get("accuracy", 0.0)
+        loss = metrics.get("loss", 0.0)
+        entropy = metrics.get("entropy", 0.0)
+        is_estimated = metrics.get("metrics_estimated", False)
+
+        # Format technique name
+        display_name = tech_name.replace("_", " ").title()
+        if len(display_name) > 28:
+            display_name = display_name[:25] + "..."
+
+        # Calculate improvement
+        delta = (acc - baseline_acc) * 100
+
+        # Color code delta
+        if tech_name == baseline_name:
+            delta_str = "(baseline)"
+            delta_style = "dim"
+        elif delta > 0:
+            delta_str = f"+{delta:.1f}%"
+            delta_style = "bold green"
+        elif delta < 0:
+            delta_str = f"{delta:.1f}%"
+            delta_style = "bold red"
+        else:
+            delta_str = "0.0%"
+            delta_style = "dim"
+
+        # Entropy suffix
+        entropy_str = f"{entropy:.2f}"
+        if is_estimated:
+            entropy_str += " (est.)"
+
+        # Add row
+        table.add_row(
+            display_name,
+            f"{acc*100:.1f}",
+            Text(delta_str, style=delta_style),
+            f"{loss:.4f}",
+            entropy_str
+        )
+
+    console.print(table)
+
+
+def _print_ascii_accuracy_table(sorted_techniques, baseline_name, baseline_acc):
+    """
+    Print ASCII fallback table with accuracy comparison.
+
+    Args:
+        sorted_techniques: List of (technique_name, technique_data) sorted by accuracy
+        baseline_name: Name of baseline technique
+        baseline_acc: Baseline accuracy value
+    """
+    # Print header
+    print(f"  {'Technique':30} | {'Accuracy':>10} | {'Δ Baseline':>12} | {'Loss':>8} | {'Entropy':>10}")
+    print("  " + "-" * 80)
+
+    # Print rows
+    for tech_name, tech_data in sorted_techniques:
+        metrics = tech_data.get("metrics", {})
+        acc = metrics.get("accuracy", 0.0)
+        loss = metrics.get("loss", 0.0)
+        entropy = metrics.get("entropy", 0.0)
+        is_estimated = metrics.get("metrics_estimated", False)
+
+        # Format technique name
+        display_name = tech_name.replace("_", " ").title()
+        if len(display_name) > 28:
+            display_name = display_name[:25] + "..."
+
+        # Calculate improvement
+        delta = (acc - baseline_acc) * 100
+
+        # Format delta
+        if tech_name == baseline_name:
+            delta_str = "(baseline)"
+        elif delta >= 0:
+            delta_str = f"+{delta:.1f}%"
+        else:
+            delta_str = f"{delta:.1f}%"
+
+        # Entropy suffix
+        entropy_str = f"{entropy:.2f}"
+        if is_estimated:
+            entropy_str += "*"
+
+        print(f"  {display_name:30} | {acc*100:>9.1f}% | {delta_str:>12} | {loss:>8.4f} | {entropy_str:>10}")
+
+
+def _print_ascii_bar_chart(sorted_techniques):
+    """
+    Print ASCII bar chart for accuracy.
+
+    Args:
+        sorted_techniques: List of (technique_name, technique_data) sorted by accuracy
+    """
+    max_bar_width = 50  # Maximum width of bar in characters
+
+    for tech_name, tech_data in sorted_techniques:
+        metrics = tech_data.get("metrics", {})
+        acc = metrics.get("accuracy", 0.0)
+
+        # Format technique name
+        display_name = tech_name.replace("_", " ").title()
+        if len(display_name) > 25:
+            display_name = display_name[:22] + "..."
+
+        # Create bar
+        bar_length = int(acc * max_bar_width)
+        bar = "█" * bar_length
+
+        # Print
+        print(f"  {display_name:25} {bar:50} {acc*100:5.1f}%")
+
+
+def _print_improvements(sorted_techniques, baseline_name, baseline_acc):
+    """
+    Print improvement over baseline with color coding.
+
+    Args:
+        sorted_techniques: List of (technique_name, technique_data) sorted by accuracy
+        baseline_name: Name of baseline technique
+        baseline_acc: Baseline accuracy value
+    """
+    # ANSI color codes for terminal
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    RESET = '\033[0m'
+
+    for tech_name, tech_data in sorted_techniques:
+        if tech_name == baseline_name:
+            continue  # Skip baseline
+
+        metrics = tech_data.get("metrics", {})
+        acc = metrics.get("accuracy", 0.0)
+        delta = (acc - baseline_acc) * 100
+
+        # Format technique name
+        display_name = tech_name.replace("_", " ").title()
+        if len(display_name) > 30:
+            display_name = display_name[:27] + "..."
+
+        # Color code
+        if delta > 0:
+            color = GREEN
+            sign = "+"
+        elif delta < 0:
+            color = RED
+            sign = ""
+        else:
+            color = ""
+            sign = ""
+
+        if color:
+            print(f"  {display_name:30} ... {color}{sign}{delta:.1f}%{RESET}")
+        else:
+            print(f"  {display_name:30} ... {sign}{delta:.1f}%")
+
+
 def print_top_mistakes(results: Dict[str, Any], top_k: int = 5):
     """
     Print top mistakes made by the model.
+    Enhanced with Rich table or ASCII table format.
 
     Args:
         results: Experimental results dictionary
@@ -162,28 +358,93 @@ def print_top_mistakes(results: Dict[str, Any], top_k: int = 5):
         print("  No mistakes found! 🎉")
         return
 
-    # Show top K mistakes
-    for i, mistake in enumerate(mistakes[:top_k], 1):
+    # Use Rich table if available
+    if RICH_AVAILABLE:
+        _print_rich_mistakes_table(mistakes[:top_k])
+    else:
+        _print_ascii_mistakes_table(mistakes[:top_k])
+
+
+def _print_rich_mistakes_table(mistakes):
+    """
+    Print mistakes using Rich table.
+
+    Args:
+        mistakes: List of mistake dictionaries
+    """
+    console = Console()
+    table = Table(show_header=True, header_style="bold red")
+
+    table.add_column("ID", style="cyan", width=10)
+    table.add_column("Question", style="white", width=35)
+    table.add_column("Expected", style="green", width=20)
+    table.add_column("Got", style="red", width=20)
+    table.add_column("Technique", style="yellow", width=15)
+
+    for mistake in mistakes:
         # Truncate long texts
         question = mistake["question"]
         if len(question) > 60:
             question = question[:57] + "..."
 
         expected = mistake["expected"]
-        if len(expected) > 40:
-            expected = expected[:37] + "..."
+        if len(expected) > 35:
+            expected = expected[:32] + "..."
 
         predicted = mistake["predicted"]
-        if len(predicted) > 40:
-            predicted = predicted[:37] + "..."
+        if len(predicted) > 35:
+            predicted = predicted[:32] + "..."
 
         technique = mistake["technique"].replace("_", " ").title()
+        if len(technique) > 13:
+            technique = technique[:10] + "..."
 
-        print(f"\n  {i}. Sample: {mistake['sample_id']}")
-        print(f"     Q: {question}")
-        print(f"     Expected: {expected}")
-        print(f"     Got:      {predicted}")
-        print(f"     Technique: {technique}")
+        table.add_row(
+            str(mistake["sample_id"]),
+            question,
+            expected,
+            predicted,
+            technique
+        )
+
+    console.print(table)
+
+
+def _print_ascii_mistakes_table(mistakes):
+    """
+    Print mistakes using ASCII table.
+
+    Args:
+        mistakes: List of mistake dictionaries
+    """
+    # Print header
+    print(f"  {'ID':10} | {'Question':35} | {'Expected':20} | {'Got':20} | {'Technique':15}")
+    print("  " + "-" * 110)
+
+    # Print rows
+    for mistake in mistakes:
+        # Truncate long texts
+        question = mistake["question"]
+        if len(question) > 33:
+            question = question[:30] + "..."
+
+        expected = mistake["expected"]
+        if len(expected) > 18:
+            expected = expected[:15] + "..."
+
+        predicted = mistake["predicted"]
+        if len(predicted) > 18:
+            predicted = predicted[:15] + "..."
+
+        technique = mistake["technique"].replace("_", " ").title()
+        if len(technique) > 13:
+            technique = technique[:10] + "..."
+
+        sample_id = str(mistake["sample_id"])
+        if len(sample_id) > 10:
+            sample_id = sample_id[:7] + "..."
+
+        print(f"  {sample_id:10} | {question:35} | {expected:20} | {predicted:20} | {technique:15}")
 
 
 def print_statistical_significance(stats: Dict[str, Any]):

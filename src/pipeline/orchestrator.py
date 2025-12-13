@@ -390,9 +390,19 @@ class ExperimentOrchestrator:
 
     def _generate_visualizations(self):
         """Phase 6: Generate all visualizations."""
-        print("  Generating all 12 visualizations...")
+        print("  Generating visualizations...")
 
-        # Prepare visualization data (placeholder)
+        # Import the new visualization module
+        from visualization.visualization import generate_all_visualizations
+
+        # Generate the 4 key visualizations
+        figures_dir = generate_all_visualizations(
+            self.results,
+            output_dir=str(self.output_path / "figures")
+        )
+
+        # Also generate the legacy 12-visualization report (if needed)
+        # Prepare visualization data for backward compatibility
         viz_data = {
             "techniques": self.config.techniques,
             "accuracy": {},
@@ -400,19 +410,22 @@ class ExperimentOrchestrator:
             "total_samples": self.results["metadata"]["total_samples"],
         }
 
-        # Generate visualization report
-        report_path = generate_visualization_report(
-            viz_data,
-            output_dir=str(self.output_path),
-            include_plots=True,
-        )
+        try:
+            report_path = generate_visualization_report(
+                viz_data,
+                output_dir=str(self.output_path),
+                include_plots=True,
+            )
+        except Exception as e:
+            print(f"    ⚠️  Legacy visualizations skipped: {e}")
+            report_path = None
 
         self.results["visualizations"] = {
-            "report_path": report_path,
-            "figures_dir": str(self.output_path / "figures"),
+            "figures_dir": figures_dir,
+            "report_path": report_path if report_path else str(self.output_path / "figures"),
         }
 
-        print(f"    ✓ Visualizations saved to {self.output_path / 'figures'}")
+        print(f"\n    ✓ All visualizations saved to {self.output_path / 'figures'}")
 
     def _save_results(self):
         """Save comprehensive results to JSON."""

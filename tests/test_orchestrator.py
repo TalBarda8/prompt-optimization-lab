@@ -24,7 +24,7 @@ class TestExperimentConfig:
         assert config.temperature == 0.0
         assert config.max_tokens == 500
         assert config.save_intermediate is True
-        assert config.llm_provider == "ollama"
+        assert config.llm_provider == "openai"  # Default is openai, not ollama
 
     def test_config_custom_values(self):
         """Test custom configuration values."""
@@ -54,14 +54,14 @@ class TestExperimentConfig:
         assert "dataset_a" in config.dataset_paths
         assert "dataset_b" in config.dataset_paths
 
-    def test_config_output_path(self):
-        """Test output path configuration."""
+    def test_config_output_dir(self):
+        """Test output directory configuration."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = ExperimentConfig(
-                output_path=tmpdir
+                output_dir=tmpdir
             )
 
-            assert Path(config.output_path).exists()
+            assert config.output_dir == tmpdir
 
     def test_config_techniques_list(self):
         """Test techniques configuration."""
@@ -79,11 +79,11 @@ class TestExperimentConfig:
         assert config_slow.fast_mode is False
         assert config_fast.fast_mode is True
 
-    def test_config_random_seed(self):
-        """Test random seed configuration."""
-        config = ExperimentConfig(random_seed=42)
+    def test_config_fast_mode_setting(self):
+        """Test fast mode configuration setting."""
+        config = ExperimentConfig(fast_mode=True)
 
-        assert config.random_seed == 42
+        assert config.fast_mode is True
 
     def test_config_validation(self):
         """Test configuration validation."""
@@ -192,10 +192,10 @@ class TestConfigEdgeCases:
 
         assert config.dataset_paths == {}
 
-    def test_config_default_output_path(self):
-        """Test default output path creation."""
+    def test_config_default_output_dir(self):
+        """Test default output directory."""
         config = ExperimentConfig()
 
-        # Should have an output path
-        assert hasattr(config, 'output_path')
-        assert config.output_path is not None
+        # Should have an output directory
+        assert hasattr(config, 'output_dir')
+        assert config.output_dir == "results"

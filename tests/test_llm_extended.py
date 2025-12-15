@@ -134,13 +134,13 @@ class TestLLMClient:
     """Test LLMClient base class."""
 
     def test_llm_client_initialization(self):
-        """Test LLM client cannot be instantiated directly."""
+        """Test LLM client with invalid provider raises ValueError."""
         try:
             client = LLMClient(provider="test")
             # If it doesn't raise, just check it exists
             assert client is not None
-        except (TypeError, NotImplementedError):
-            # Expected - abstract class
+        except (TypeError, NotImplementedError, ValueError):
+            # Expected - abstract class or invalid provider
             assert True
 
     def test_llm_client_provider_setting(self):

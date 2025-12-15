@@ -142,12 +142,18 @@ class TestLossCalculation:
 
     def test_calculate_fallback_entropy(self):
         """Test fallback entropy calculation."""
+        predictions = ["Paris", "France", "Paris", "London"]
+        accuracy = 0.75
+        response_lengths = [5, 6, 5, 6]
+
         entropy = calculate_fallback_entropy(
-            response_text="This is a test response.",
-            avg_response_length=10
+            predictions=predictions,
+            accuracy=accuracy,
+            response_lengths=response_lengths
         )
 
         assert isinstance(entropy, float)
+        assert entropy >= 0
 
     def test_calculate_fallback_perplexity(self):
         """Test fallback perplexity calculation."""

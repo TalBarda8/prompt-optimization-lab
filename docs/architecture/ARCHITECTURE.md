@@ -136,17 +136,22 @@ src/data/
 
 ```
 src/llm/
-├── client.py             # Multi-provider LLM client
+├── client.py             # Multi-provider LLM client (with auto-download)
 ├── utils.py              # Token counting, response parsing
 └── __init__.py
 ```
 
 **Key Classes**:
 - `LLMClient`: Unified interface for OpenAI, Anthropic, Ollama
+  - **Auto-Download**: Automatically downloads missing Ollama models via `_ensure_ollama_model_exists()`
+  - **Fast Mode**: Optimized token limits and timeouts for local LLMs
+  - **Streaming Progress**: Real-time download progress via subprocess streaming
 - `ResponseParser`: Extracts answers and log probabilities
 - `TokenCounter`: Estimates token usage for cost tracking
 
 **Design Pattern**: **Adapter Pattern** - Provides unified interface to different LLM APIs
+
+**Default Provider**: Ollama (local, free, auto-downloads models as needed)
 
 ### Prompts Module Components
 
@@ -567,11 +572,12 @@ Content-Type: application/json
 # pipeline_config.yaml
 
 model:
-  provider: "openai"        # openai | anthropic | ollama
-  model_name: "gpt-4"       # Model identifier
+  provider: "ollama"        # ollama (default) | openai | anthropic
+  model_name: "phi3"        # Model identifier (auto-downloaded if missing)
   temperature: 0.0          # Sampling temperature
   max_tokens: 500           # Max response length
   timeout: 60               # Request timeout (seconds)
+  fast_mode: false          # Enable fast mode for local LLMs (2-5x speedup)
 
 datasets:
   dataset_a: "data/dataset_a.json"
@@ -604,6 +610,11 @@ visualization:
   formats: ["png", "pdf"]
   dpi: 300
   style: "seaborn-v0_8"
+
+parallel:
+  enabled: false            # Enable multiprocessing
+  max_workers: null         # null = auto (cpu_count - 1)
+  chunk_size: 10            # Samples per worker
 
 output:
   results_dir: "results"

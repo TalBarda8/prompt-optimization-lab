@@ -105,40 +105,51 @@ Expected output: All tests should pass (**357 tests**, 72% coverage).
 
 ## 3. Quick Start
 
-### 3.1 Your First Experiment (5 Minutes)
+### 3.1 Your First Experiment (2 Minutes) - No API Keys Required!
 
-**Step 1: Set Up API Keys (if using cloud LLMs)**
+**The system now uses Ollama as the default provider with automatic model downloading!**
 
-```bash
-export OPENAI_API_KEY="your-key-here"
-# or
-export ANTHROPIC_API_KEY="your-key-here"
-```
-
-**Step 2: Run Example Experiment**
+**Step 1: Install Ollama (if not already installed)**
 
 ```bash
-python -m src.cli run-experiment \
-    --provider ollama \
-    --model llama3.2 \
-    --techniques baseline cot react \
-    --output results/
+# macOS/Linux
+brew install ollama
+
+# Start Ollama service
+ollama serve
 ```
 
-Or use the legacy script:
+**Step 2: Run Example Experiment (Models Auto-Download!)**
 
 ```bash
-python3 scripts/run_experiment.py \
-    --dataset data/dataset_a.json \
-    --llm-provider ollama \
-    --techniques baseline cot react \
-    --output results/
+# Using default provider (Ollama) and model (phi3)
+# The phi3 model will be automatically downloaded if missing
+python main.py run-experiment
+
+# Or use module CLI
+python -m src.cli run-experiment
 ```
+
+**That's it!** The system will automatically:
+- ✅ Download the phi3 model if not present (first run only)
+- ✅ Show real-time download progress
+- ✅ Run the experiment with all 7 techniques
+- ✅ Generate visualizations and report
 
 **Step 3: View Results**
 
 ```bash
 cat results/experiment_report.md
+ls results/figures/  # Check generated visualizations
+```
+
+**Alternative: Cloud LLMs (Requires API Keys)**
+
+If you prefer using OpenAI or Anthropic:
+
+```bash
+export OPENAI_API_KEY="your-key-here"
+python main.py run-experiment --provider openai --model gpt-4
 ```
 
 ### 3.2 Expected Output
@@ -247,21 +258,33 @@ python3 scripts/run_experiment.py \
 
 ### 5.2 Using Different LLM Providers
 
-**Ollama (Local - Free):**
+**Ollama (Local - Free) - DEFAULT PROVIDER with Auto-Download:**
 
 ```bash
-# First, ensure Ollama is running
-ollama serve &
+# Ensure Ollama is running
+ollama serve
 
-# Pull model if needed
-ollama pull llama3.2
+# That's it! Models are auto-downloaded when needed
+# No need to manually run "ollama pull" anymore
 
-# Run experiment
-python3 scripts/run_experiment.py \
-    --llm-provider ollama \
-    --llm-model llama3.2 \
-    --dataset data/dataset_a.json
+# Run experiment (models auto-download if missing)
+python main.py run-experiment --model llama3.2
+
+# Or with module CLI
+python -m src.cli run-experiment --provider ollama --model llama3.2
+
+# The system will automatically:
+# 1. Check if llama3.2 is installed locally
+# 2. If not found, download it automatically with progress display
+# 3. Run the experiment once download completes
 ```
+
+**Auto-Download Features:**
+- ✅ Automatic detection of missing models
+- ✅ Real-time download progress streaming
+- ✅ Clear error messages if download fails
+- ✅ Works with any Ollama model (llama3.2, phi3, mistral, etc.)
+- ✅ Only downloads once (cached for future runs)
 
 **OpenAI (Cloud):**
 

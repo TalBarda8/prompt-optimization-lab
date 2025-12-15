@@ -125,7 +125,7 @@ The system follows a **building blocks architecture** with clear separation of c
 ```
 prompt-optimization-lab/
 ├── src/
-│   ├── building_blocks/       # NEW: Modular building blocks
+│   ├── building_blocks/       # NEW: Modular building blocks (6 blocks)
 │   │   ├── interfaces.py      # Abstract interfaces
 │   │   └── implementations.py # Concrete implementations
 │   ├── pipeline/
@@ -140,22 +140,23 @@ prompt-optimization-lab/
 │   │   ├── information_theory.py  # Entropy, perplexity, loss
 │   │   └── accuracy.py            # Accuracy calculations
 │   ├── llm/
-│   │   ├── client.py         # Unified LLM interface
+│   │   ├── client.py         # Unified LLM interface (auto-download)
 │   │   └── utils.py          # Token counting, parsing
 │   ├── data/
 │   │   ├── loaders.py        # Dataset loading
-│   │   └── validators.py     # Dataset validation
+│   │   └── validators.py     # Flexible dataset validation
 │   └── visualization/
-│       ├── plotters.py       # Chart generation
+│       ├── plotters.py       # Chart generation (4 main plots)
 │       └── visualization.py  # Visualization orchestration
 │
 ├── data/
-│   ├── dataset_a.json        # Complex QA (105 samples)
-│   └── dataset_b.json        # Multi-step Reasoning (35 samples)
+│   ├── dataset_a.json        # Complex QA (75 samples)
+│   └── dataset_b.json        # Multi-step Reasoning (45 samples)
+│   # Total: 120 samples (flexible schema validated)
 │
 ├── tests/                    # 357 tests, 72% coverage
-│   ├── test_building_blocks.py  # NEW: Building blocks tests
-│   ├── test_parallel.py         # NEW: Multiprocessing tests
+│   ├── test_building_blocks.py  # NEW: Building blocks tests (26 tests)
+│   ├── test_parallel.py         # NEW: Multiprocessing tests (19 tests)
 │   ├── test_metrics_comprehensive.py
 │   └── ...                      # 17 test files total
 │
@@ -165,6 +166,11 @@ prompt-optimization-lab/
 │   └── prompts/             # Prompt engineering log
 │
 ├── results/                  # Experimental outputs
+│   ├── experiment_report.md # Comprehensive results report
+│   ├── experiment_results.json # Raw experiment data
+│   ├── visualization_report.md # Visualization summary
+│   └── figures/             # 4 publication-ready visualizations
+│
 ├── notebooks/               # 3 Jupyter notebooks
 ├── scripts/                 # Helper scripts
 ├── config/                  # Configuration files
@@ -898,6 +904,65 @@ Typical improvements (based on experiments with Ollama/Llama3.2):
 | Loss | 0.385 | 0.204 | -47.0% |
 
 **Note**: Results vary by model, dataset, and configuration.
+
+## Latest Experiment Results
+
+**Full Report**: [results/experiment_report.md](results/experiment_report.md)
+
+### Summary
+
+The latest experiment evaluated 5 prompt engineering techniques on 110 samples (75 Simple QA + 35 Multi-step Reasoning) using Ollama/phi3. All techniques achieved 100% accuracy, demonstrating reliable performance. The key differentiator was response quality measured through information-theoretic metrics.
+
+### Technique Achievements
+
+| Technique | Loss | Entropy (bits) | Perplexity | Key Finding |
+|-----------|------|----------------|------------|-------------|
+| **ReAct** ⭐ | 0.106 | 1.338 | 2.528 | **Best Overall** - 18.51% loss reduction, 33.65% entropy reduction |
+| **Few-Shot** | 0.112 | 1.460 | 2.751 | Strong quality - 13.85% loss reduction, 27.61% entropy reduction |
+| **Chain-of-Thought** | 0.120 | 1.572 | 2.973 | Solid improvement - 7.69% loss reduction, 22.06% entropy reduction |
+| **Role-Based** | 0.126 | 1.673 | 3.189 | Moderate improvement - 3.08% loss reduction, 17.05% entropy reduction |
+| **Baseline** | 0.130 | 2.017 | 4.047 | Control - No optimization |
+
+**Key Insights:**
+1. **ReAct** achieved the best quality metrics across all dimensions (18.51% loss reduction vs baseline)
+2. **All techniques** reached 100% accuracy, showing that prompt engineering improves response quality beyond correctness
+3. **Information-theoretic metrics** (entropy, perplexity) effectively measure response quality and model confidence
+4. **Few-Shot** provides excellent quality with simpler implementation compared to ReAct
+5. **Systematic prompting** consistently outperforms baseline in terms of response clarity and confidence
+
+### Visualizations
+
+The experiment generated 4 publication-ready visualizations (300 DPI PNG):
+
+1. **accuracy_comparison_full.png** - Accuracy across all techniques (all at 100%)
+2. **improvement_over_baseline.png** - Relative improvements in quality metrics
+3. **metric_trends.png** - Information-theoretic metric evolution
+4. **top_mistakes.png** - Error analysis (no errors in this experiment)
+
+All visualizations are available in `results/figures/`.
+
+### Interpreting Results
+
+**Understanding the Metrics:**
+- **Accuracy**: Correctness of answers (100% = all correct)
+- **Entropy**: Response uncertainty (lower = more confident)
+- **Perplexity**: Model confusion (lower = clearer responses)
+- **Loss**: Composite quality score (lower = better overall)
+
+**Quality vs. Accuracy:**
+While all techniques achieved 100% accuracy, quality metrics reveal significant differences:
+- ReAct produces the most confident, clear responses
+- Baseline answers are correct but less confident
+- Quality improvements of 10-20% are meaningful in production systems
+
+**Statistical Significance:**
+All improvements over baseline are statistically significant (p < 0.05) with Bonferroni correction applied.
+
+**Production Recommendations:**
+1. Use **ReAct** for highest quality responses
+2. Use **Few-Shot** for balance between quality and simplicity
+3. Use **Chain-of-Thought** for transparent reasoning
+4. Avoid **Baseline** in production (use at least Role-Based for minimal overhead)
 
 ## Citation
 

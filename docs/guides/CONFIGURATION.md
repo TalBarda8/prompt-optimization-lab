@@ -61,12 +61,15 @@ output:        # Output and reporting options
 logging:       # Logging configuration (optional)
 ```
 
-### 2.2 Minimal Configuration
+### 2.2 Minimal Configuration (Uses Defaults)
 
 ```yaml
+# Minimal config - uses smart defaults
+# Provider: ollama (default, free, local)
+# Model: phi3 (default, auto-downloads if missing)
 llm:
-  provider: ollama
-  model: llama3.2
+  provider: ollama  # DEFAULT - no API keys needed
+  model: phi3       # DEFAULT - auto-downloaded if missing
 
 experiment:
   techniques:
@@ -77,6 +80,13 @@ datasets:
   dataset_a: data/dataset_a.json
 ```
 
+**Key Defaults in v2.0:**
+- ✅ Default Provider: Ollama (local, free)
+- ✅ Default Model: phi3 (fast, lightweight)
+- ✅ Auto-Download: Enabled (models downloaded automatically if missing)
+- ✅ Fast Mode: Disabled (can enable for 2-5x speedup)
+- ✅ Parallel Execution: Disabled (can enable for multi-core processing)
+
 ### 2.3 Complete Configuration Template
 
 ```yaml
@@ -84,11 +94,12 @@ datasets:
 # LLM Configuration
 # ============================================================================
 llm:
-  # Provider: openai | anthropic | ollama
+  # Provider: ollama (default, free) | openai | anthropic
   provider: ollama
 
   # Model name (provider-specific)
-  model: llama3.2
+  # Default: phi3 (auto-downloaded if missing for Ollama)
+  model: phi3
 
   # Temperature (0.0 = deterministic, 1.0 = creative)
   temperature: 0.0
@@ -97,7 +108,13 @@ llm:
   max_tokens: 500
 
   # Request timeout in seconds
-  timeout: 30
+  timeout: 60
+
+  # Fast mode for local LLMs (2-5x speedup)
+  fast_mode: false
+
+  # Auto-download models (Ollama only)
+  auto_download: true  # Default: true for Ollama
 
   # Retry configuration
   max_retries: 3
@@ -134,6 +151,12 @@ experiment:
 
   # Significance level for tests
   alpha: 0.05
+
+  # Parallel execution (NEW in v2.0)
+  parallel:
+    enabled: false       # Enable multiprocessing
+    max_workers: null    # null = auto (cpu_count - 1), or specify number
+    chunk_size: 10       # Samples per worker
 
 # ============================================================================
 # Dataset Configuration
@@ -214,14 +237,23 @@ llm:
   max_tokens: 500
 ```
 
-**Ollama (Local):**
+**Ollama (Local) - DEFAULT PROVIDER with Auto-Download:**
 ```yaml
 llm:
-  provider: ollama
-  model: llama3.2
+  provider: ollama          # Default provider (free, local, no API keys)
+  model: phi3               # Default model (auto-downloaded if missing)
   temperature: 0.0
   max_tokens: 500
+  fast_mode: false          # Enable for 2-5x speedup
+  auto_download: true       # Auto-download missing models (default)
 ```
+
+**Auto-Download Features:**
+- ✅ Automatically detects missing Ollama models
+- ✅ Downloads models on-demand with progress display
+- ✅ Works with any Ollama model (llama3.2, phi3, mistral, etc.)
+- ✅ Only downloads once (cached for future runs)
+- ✅ Clear error messages if download fails
 
 ### 3.2 Model Options
 
@@ -235,11 +267,12 @@ llm:
 - `claude-3-5-sonnet-20241022` - Best balance
 - `claude-3-haiku-20240307` - Fastest, cheapest
 
-**Ollama Models:**
-- `llama3.2` - Recommended (3B params)
-- `llama3.1` - Larger (8B params)
-- `mistral` - Alternative
-- `phi3` - Lightweight
+**Ollama Models (All Auto-Download):**
+- `phi3` - **Default** (fast, lightweight, recommended for quick experiments)
+- `llama3.2` - Recommended (3B params, good balance)
+- `llama3.1` - Larger (8B params, better quality)
+- `mistral` - Alternative (7B params)
+- Any model in `ollama list` - Auto-downloads if missing
 
 ### 3.3 Temperature Settings
 

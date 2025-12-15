@@ -24,7 +24,7 @@ class TestExperimentConfig:
         assert config.temperature == 0.0
         assert config.max_tokens == 500
         assert config.save_intermediate is True
-        assert config.llm_provider == "openai"  # Default is openai, not ollama
+        assert config.llm_provider == "ollama"  # Default is ollama (v2.0)
 
     def test_config_custom_values(self):
         """Test custom configuration values."""

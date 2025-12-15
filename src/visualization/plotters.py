@@ -127,7 +127,7 @@ def plot_entropy_distribution(
     entropy_data = [data[t] for t in techniques]
 
     # Create box plot
-    bp = ax.boxplot(entropy_data, labels=techniques, patch_artist=True)
+    bp = ax.boxplot(entropy_data, tick_labels=techniques, patch_artist=True)
 
     # Color the boxes
     for patch in bp['boxes']:
@@ -169,7 +169,7 @@ def plot_perplexity_distribution(
     perplexity_data = [data[t] for t in techniques]
 
     # Create box plot
-    bp = ax.boxplot(perplexity_data, labels=techniques, patch_artist=True)
+    bp = ax.boxplot(perplexity_data, tick_labels=techniques, patch_artist=True)
 
     # Color the boxes
     for patch in bp['boxes']:
@@ -216,7 +216,7 @@ def plot_response_length_distribution(
     df = pd.DataFrame(df_data)
 
     # Create violin plot
-    sns.violinplot(data=df, x='Technique', y='Length', ax=ax, palette='Set2')
+    sns.violinplot(data=df, x='Technique', y='Length', hue='Technique', ax=ax, palette='Set2', legend=False)
 
     ax.set_xlabel('Prompt Technique', fontsize=12, fontweight='bold')
     ax.set_ylabel('Response Length (tokens)', fontsize=12, fontweight='bold')

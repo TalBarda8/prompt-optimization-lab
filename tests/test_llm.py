@@ -238,23 +238,31 @@ class TestOllamaClient:
 
     @patch('llm.client.shutil.which')
     @patch('llm.client.subprocess.run')
-    def test_init_ollama_model_not_found(self, mock_subprocess, mock_which):
-        """Test Ollama initialization when model is not pulled."""
+    @patch('llm.client.subprocess.Popen')
+    def test_init_ollama_model_not_found(self, mock_popen, mock_subprocess, mock_which):
+        """Test Ollama initialization with auto-download when model is not pulled."""
         # Mock ollama being installed
         mock_which.return_value = "/usr/local/bin/ollama"
 
-        # Mock ollama list command - model not in list
-        mock_result = Mock()
-        mock_result.stdout = "llama3.1:latest\nmistral:latest"
-        mock_result.returncode = 0
-        mock_subprocess.return_value = mock_result
+        # Mock ollama list command - model not in list (triggers auto-download)
+        mock_list_result = Mock()
+        mock_list_result.stdout = "llama3.1:latest\nmistral:latest"
+        mock_list_result.returncode = 0
+        mock_subprocess.return_value = mock_list_result
 
-        try:
-            client = LLMClient(provider="ollama", model="llama3.2")
-            assert False, "Should have raised RuntimeError"
-        except RuntimeError as e:
-            assert "Model 'llama3.2' not found" in str(e)
-            assert "ollama pull llama3.2" in str(e)
+        # Mock ollama pull (auto-download) - simulate successful download
+        mock_process = Mock()
+        mock_process.stdout = iter(["pulling manifest\n", "success\n"])
+        mock_process.wait.return_value = 0
+        mock_popen.return_value = mock_process
+
+        # With auto-download, this should succeed (no exception)
+        client = LLMClient(provider="ollama", model="llama3.2")
+        assert client.provider == "ollama"
+        assert client.model == "llama3.2"
+
+        # Verify auto-download was triggered
+        mock_popen.assert_called_once()
 
     @patch('llm.client.shutil.which')
     @patch('llm.client.subprocess.run')

@@ -1,9 +1,9 @@
 # Configuration Guide
 
 **Project:** Prompt Optimization & Evaluation System
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Author:** Tal Barda
-**Last Updated:** December 13, 2025
+**Last Updated:** December 15, 2025
 
 ---
 
@@ -685,19 +685,77 @@ experiment:
     accuracy: 0.3     # Default: 0.3
 ```
 
-### 8.3 Parallel Processing
+### 8.3 Parallel Processing (NEW in v2.0)
+
+**Enable Multiprocessing:**
 
 ```yaml
 experiment:
   parallel_execution: true
-  max_workers: 4  # Number of parallel threads
-  batch_size: 10  # Samples per batch
+  max_workers: null  # Auto-detect (uses cpu_count() - 1)
+  # Or specify manually:
+  # max_workers: 4
+```
+
+**Performance Benefits:**
+- Significant speedup for CPU-bound tasks
+- Automatic optimal worker count
+- Thread-safe execution
+- Graceful error handling with fallback
+
+**Configuration Options:**
+
+```yaml
+experiment:
+  # Enable parallel processing
+  parallel_execution: true
+
+  # Worker configuration
+  max_workers: null  # Auto (recommended)
+  # max_workers: 4   # Manual override
+
+  # Parallel evaluation modes
+  parallel_samples: true      # Evaluate samples in parallel
+  parallel_techniques: true   # Evaluate techniques in parallel
 ```
 
 **Guidelines:**
-- CPU cores: max_workers ≤ num_cores
-- Memory: ~500 MB per worker
-- API rate limits: respect provider limits
+- **CPU cores**: `max_workers: null` auto-detects optimal count
+- **Memory**: ~500 MB per worker
+- **API rate limits**: Respect provider limits (use rate limiting for cloud APIs)
+- **Local LLMs**: Full parallelization supported
+- **Cloud APIs**: Use sequential or limited parallelization
+
+**Example: Full Parallelization**
+
+```yaml
+llm:
+  provider: ollama  # Local model
+  model: llama3.2
+
+experiment:
+  techniques:
+    - baseline
+    - chain_of_thought
+    - react
+  parallel_execution: true
+  max_workers: null  # Auto-detect
+```
+
+**Example: Limited Parallelization for Cloud APIs**
+
+```yaml
+llm:
+  provider: openai  # Cloud API
+  model: gpt-4
+
+experiment:
+  techniques:
+    - baseline
+    - chain_of_thought
+  parallel_execution: true
+  max_workers: 2  # Limit to respect rate limits
+```
 
 ### 8.4 Caching
 
@@ -1008,6 +1066,15 @@ logging:
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
 | 1.0 | 2025-12-13 | Initial configuration guide | Tal Barda |
+| 2.0 | 2025-12-15 | Added multiprocessing configuration, updated for v2.0 | Tal Barda |
+
+---
+
+**What's New in v2.0:**
+- **Multiprocessing Support**: Complete parallel processing configuration
+- **Building Blocks**: Modular architecture (no new config needed)
+- **Enhanced Testing**: 357 tests with 72% coverage
+- **Improved Performance**: Automatic worker optimization
 
 ---
 

@@ -1,8 +1,8 @@
 # System Architecture Documentation
 
 **Project**: Prompt Optimization & Evaluation System
-**Version**: 1.0.0
-**Last Updated**: 2025-12-13
+**Version**: 2.0.0
+**Last Updated**: 2025-12-15
 **Author**: Tal Barda
 
 ---
@@ -69,7 +69,7 @@ The Prompt Optimization & Evaluation System is a comprehensive experimental fram
 
 ## Container Architecture (C4 Level 2)
 
-The system is organized into 6 main containers (Python packages):
+The system is organized into 8 main containers (Python packages):
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -84,6 +84,11 @@ The system is organized into 6 main containers (Python packages):
 │  │  Metrics   │  │Visualization│  │   Pipeline  │            │
 │  │  Module    │  │   Module    │  │ Orchestrator│            │
 │  └────────────┘  └────────────┘  └─────────────┘            │
+│                                                               │
+│  ┌────────────┐  ┌──────────────────────────────┐            │
+│  │  Building  │  │        Parallel Executor      │            │
+│  │   Blocks   │  │   (Multiprocessing Support)   │            │
+│  └────────────┘  └──────────────────────────────┘            │
 │                                                               │
 │  ┌────────────────────────────────────────────────┐          │
 │  │            CLI & Main Entry Point              │          │
@@ -104,7 +109,9 @@ The system is organized into 6 main containers (Python packages):
 3. **Prompts Module**: 7 prompt technique implementations
 4. **Metrics Module**: Information-theoretic calculations
 5. **Visualization Module**: Chart generation (12 types)
-6. **Pipeline Module**: Orchestration, statistics, summarization
+6. **Pipeline Module**: Orchestration, statistics, summarization, parallel execution
+7. **Building Blocks Module**: Modular composable components (6 building blocks)
+8. **Parallel Executor**: Multiprocessing support for performance optimization
 
 ---
 
@@ -196,6 +203,7 @@ src/pipeline/
 ├── experiment_evaluator.py # Multi-technique experiments
 ├── statistics.py         # Statistical validation
 ├── summary.py            # Results summarization
+├── parallel.py           # Multiprocessing support (NEW)
 └── __init__.py
 ```
 
@@ -204,8 +212,28 @@ src/pipeline/
 - `TechniqueEvaluator`: Evaluates one technique on dataset
 - `StatisticalValidator`: t-tests, Wilcoxon, Bonferroni correction
 - `ExperimentSummarizer`: Rich console output and JSON export
+- `ParallelExecutor`: Thread-safe parallel processing (NEW)
 
 **Design Pattern**: **Facade Pattern** - Orchestrator provides simplified interface to complex subsystem
+
+### Building Blocks Module Components (NEW)
+
+```
+src/building_blocks/
+├── interfaces.py         # Abstract building block interfaces
+├── implementations.py    # Concrete implementations
+└── __init__.py
+```
+
+**Key Interfaces**:
+- `DataLoaderBlock`: Load and validate datasets
+- `PromptBuilderBlock`: Construct prompts from techniques
+- `LLMInterfaceBlock`: Execute LLM calls
+- `MetricCalculatorBlock`: Calculate evaluation metrics
+- `ResultAggregatorBlock`: Aggregate experiment results
+- `VisualizerBlock`: Generate visualizations
+
+**Design Pattern**: **Building Blocks Pattern** - Modular composable components with clear contracts
 
 ---
 
@@ -656,6 +684,14 @@ CACHE_ENABLED=true
 
 ---
 
+**Project Statistics**:
+- **Version**: 2.0.0
+- **Total Tests**: 357 (72% coverage)
+- **Modules**: 8 core containers
+- **Building Blocks**: 6 composable components
+- **Prompt Techniques**: 7 implemented
+- **Test Coverage**: 72%
+
 **Document Status**: ✅ Complete
-**Last Review**: 2025-12-13
-**Next Review**: 2026-01-13
+**Last Review**: 2025-12-15
+**Next Review**: 2026-01-15

@@ -1,8 +1,8 @@
 # User Manual: Prompt Optimization & Evaluation System
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Author:** Tal Barda
-**Last Updated:** December 13, 2025
+**Last Updated:** December 15, 2025
 
 ---
 
@@ -35,6 +35,9 @@ The Prompt Optimization & Evaluation System is a comprehensive experimental fram
 - **Multiple LLM Backends**: OpenAI, Anthropic, Ollama (local)
 - **Comprehensive Visualization**: 12+ publication-ready charts
 - **Fast Mode**: 4× speedup for production use
+- **Multiprocessing Support**: Parallel execution for performance (NEW in v2.0)
+- **Building Blocks Architecture**: 6 modular composable components (NEW in v2.0)
+- **Comprehensive Testing**: 357 tests with 72% coverage (NEW in v2.0)
 - **Reproducible**: Fixed random seeds, deterministic evaluation
 
 ### 1.3 Who Should Use This?
@@ -82,11 +85,13 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**Step 4: Install Package (Optional)**
+**Step 4: Install Package (Recommended)**
 
 ```bash
 pip install -e .
 ```
+
+This enables you to use `python -m src.cli` commands from anywhere.
 
 ### 2.3 Verify Installation
 
@@ -94,7 +99,7 @@ pip install -e .
 python3 -m pytest tests/ -v
 ```
 
-Expected output: All tests should pass (160+ tests).
+Expected output: All tests should pass (**357 tests**, 72% coverage).
 
 ---
 
@@ -111,6 +116,16 @@ export ANTHROPIC_API_KEY="your-key-here"
 ```
 
 **Step 2: Run Example Experiment**
+
+```bash
+python -m src.cli run-experiment \
+    --provider ollama \
+    --model llama3.2 \
+    --techniques baseline cot react \
+    --output results/
+```
+
+Or use the legacy script:
 
 ```bash
 python3 scripts/run_experiment.py \
@@ -456,6 +471,61 @@ results = orchestrator.run_experiment()
 # Access results
 print(f"Best technique: {results['best_technique']}")
 print(f"Accuracy: {results['techniques']['react']['metrics']['accuracy']:.2%}")
+```
+
+**Using Building Blocks (NEW in v2.0):**
+
+```python
+from building_blocks import (
+    JSONDataLoader,
+    TechniquePromptBuilder,
+    UnifiedLLMInterface,
+    ComprehensiveMetricCalculator,
+    ExperimentResultAggregator
+)
+
+# Load data
+loader = JSONDataLoader()
+dataset = loader.load("data/dataset_a.json")
+
+# Build prompts
+builder = TechniquePromptBuilder()
+prompts = [builder.build(sample["question"], "chain_of_thought")
+           for sample in dataset]
+
+# Execute LLM calls
+interface = UnifiedLLMInterface(provider="ollama", model="llama3.2")
+responses = [interface.execute(prompt) for prompt in prompts]
+
+# Calculate metrics
+calculator = ComprehensiveMetricCalculator()
+predictions = [r["response"] for r in responses]
+ground_truths = [s["answer"] for s in dataset]
+metrics = calculator.calculate(predictions, ground_truths)
+
+# Aggregate results
+aggregator = ExperimentResultAggregator()
+results = [{"correct": p == g, **metrics}
+           for p, g in zip(predictions, ground_truths)]
+summary = aggregator.aggregate(results)
+
+print(f"Accuracy: {summary['statistics']['accuracy']:.2%}")
+```
+
+**Parallel Execution (NEW in v2.0):**
+
+```python
+from pipeline.parallel import ParallelExecutor, parallel_evaluate_samples
+
+# Create parallel executor
+executor = ParallelExecutor(max_workers=4)
+
+# Parallel evaluation
+results = parallel_evaluate_samples(
+    evaluate_func=my_evaluation_function,
+    samples=dataset_samples,
+    max_workers=4
+)
 ```
 
 ### 7.2 Custom Prompt Techniques
@@ -816,6 +886,16 @@ logging:
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
 | 1.0 | 2025-12-13 | Initial user manual | Tal Barda |
+| 2.0 | 2025-12-15 | Added building blocks, multiprocessing, updated test counts (357 tests, 72% coverage) | Tal Barda |
+
+---
+
+**Project Statistics (v2.0):**
+- **Total Tests**: 357 tests
+- **Coverage**: 72%
+- **Building Blocks**: 6 modular components
+- **Modules**: 8 core containers
+- **Multiprocessing**: Fully supported
 
 ---
 

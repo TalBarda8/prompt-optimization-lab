@@ -30,9 +30,17 @@ This project implements a rigorous scientific framework to evaluate **7 prompt e
 **Major Architecture Improvements:**
 - 🏗️ **Building Blocks Pattern**: 6 modular building blocks with clear contracts
 - 🚀 **Multiprocessing Support**: Parallel execution for samples and techniques
+- 🤖 **Ollama as Default**: Local LLM provider with automatic model downloading
+- 📥 **Auto-Download**: Missing Ollama models are downloaded automatically
 - ✅ **Enhanced Testing**: 357 tests (was 194), 72% coverage (was 67%)
 - 📦 **Proper Package Structure**: Install via `pip install -e .`
 - 📚 **Complete Documentation**: 100% compliance with academic guidelines
+
+**Default Configuration:**
+- **Provider**: Ollama (local, free, no API keys needed)
+- **Model**: phi3 (fast, lightweight, auto-downloaded if missing)
+- **Auto-Download**: Yes (Ollama models only)
+- **Backward Compatible**: Can still use OpenAI/Anthropic with `--provider` flag
 
 ## Quick Start
 
@@ -49,8 +57,12 @@ cp .env.example .env
 # 3. Validate datasets
 python -m src.cli validate
 
-# 4. Run full experiment
-python -m src.cli run-experiment --model gpt-4
+# 4. Run full experiment (uses Ollama phi3 by default, auto-downloads if missing)
+python -m src.cli run-experiment
+
+# Or with OpenAI (requires API key)
+export OPENAI_API_KEY="your-key-here"
+python -m src.cli run-experiment --provider openai --model gpt-4
 
 # 5. View results
 ls results/figures/  # Check generated visualizations
@@ -72,19 +84,28 @@ pip install -e .
 pip install -r requirements.txt
 ```
 
-### With Ollama (Local LLM)
+### With Ollama (Local LLM) - Default Provider
+
+**Ollama is now the default provider with automatic model downloading!**
 
 ```bash
 # Install Ollama
 brew install ollama  # macOS
 # Or download from https://ollama.ai
 
-# Pull a model
-ollama pull llama3.2
+# Start Ollama service (if not running)
+ollama serve
 
-# Verify installation
-ollama list
+# That's it! Models are automatically downloaded when you run experiments
+# No need to manually run "ollama pull" anymore
+python main.py run-experiment  # Auto-downloads phi3 if missing
 ```
+
+**Automatic Model Download:**
+- Models are automatically downloaded when missing (Ollama only)
+- Download progress is shown in real-time
+- No manual intervention required
+- OpenAI and Anthropic require API keys (no auto-download)
 
 ### Development Setup
 
@@ -183,16 +204,27 @@ python -m src.cli stats
 
 ### Running Experiments
 
+**Default: Ollama with auto-download**
+
 ```bash
-# Full experiment (all 7 techniques, 140 samples)
+# Full experiment (uses Ollama phi3, auto-downloads if missing)
 python -m src.cli run-experiment
 
-# With specific provider and model
+# Or with legacy main.py
+python main.py run-experiment
+
+# With different Ollama model (auto-downloads if missing)
+python main.py run-experiment --model llama3.2
+
+# With fast mode (2-5x faster)
+python main.py run-experiment --fast-mode
+
+# With OpenAI (requires API key)
+export OPENAI_API_KEY="your-key-here"
 python -m src.cli run-experiment --provider openai --model gpt-4
 
 # Custom configuration
 python -m src.cli run-experiment \
-  --provider ollama \
   --model llama3.2 \
   --techniques baseline chain_of_thought react \
   --output results/custom

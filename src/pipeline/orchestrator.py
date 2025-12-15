@@ -52,7 +52,7 @@ class ExperimentConfig:
 
     Attributes:
         dataset_paths: Dict mapping dataset names to file paths
-        llm_provider: LLM provider ("openai" or "anthropic")
+        llm_provider: LLM provider ("openai", "anthropic", or "ollama")
         llm_model: Model name
         temperature: Sampling temperature
         max_tokens: Maximum tokens to generate
@@ -62,8 +62,8 @@ class ExperimentConfig:
         fast_mode: Enable fast mode (shorter prompts, reduced timeouts for Ollama)
     """
     dataset_paths: Dict[str, str] = field(default_factory=dict)
-    llm_provider: str = "openai"
-    llm_model: str = "gpt-4"
+    llm_provider: str = "ollama"
+    llm_model: str = "phi3"
     temperature: float = 0.0
     max_tokens: int = 500
     techniques: List[str] = field(default_factory=list)

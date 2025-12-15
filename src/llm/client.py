@@ -106,34 +106,90 @@ class LLMClient:
                     "Ollama is not installed or not in PATH.\n"
                     "Install Ollama:\n"
                     "  macOS/Linux: brew install ollama\n"
-                    "  Or visit: https://ollama.ai\n"
-                    "Then pull the model: ollama pull llama3.2"
+                    "  Or visit: https://ollama.ai"
                 )
-            # Verify model is available
-            self._verify_ollama_model()
+            # Ensure model is available (auto-download if needed)
+            self._ensure_ollama_model_exists()
             self.client = None  # Ollama uses subprocess, no client object needed
 
         else:
             raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'anthropic', or 'ollama'")
 
-    def _verify_ollama_model(self):
-        """Verify that the Ollama model is available."""
+    def _ensure_ollama_model_exists(self):
+        """
+        Ensure Ollama model exists, downloading it automatically if missing.
+
+        This method:
+        1. Checks if the model is already available locally
+        2. If not found, automatically downloads it via 'ollama pull'
+        3. Streams the download progress to the user
+        4. Raises clear errors if download fails
+        """
         try:
+            # Check if model exists
             result = subprocess.run(
                 ["ollama", "list"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=10
             )
-            if self.model not in result.stdout:
+
+            # Parse the model list
+            model_found = False
+            for line in result.stdout.split('\n'):
+                # Check if our model appears in the list
+                # Handle model names with tags (e.g., "llama3.2:latest" vs "llama3.2")
+                if line.startswith(self.model) or line.startswith(f"{self.model}:"):
+                    model_found = True
+                    break
+
+            if model_found:
+                print(f"✅ Model '{self.model}' found locally")
+                return
+
+            # Model not found - auto-download
+            print(f"\n❌ Model '{self.model}' not found locally")
+            print(f"📥 Downloading model via 'ollama pull {self.model}'...")
+            print("This may take a few minutes depending on model size and connection speed.\n")
+
+            # Run ollama pull with live output streaming
+            process = subprocess.Popen(
+                ["ollama", "pull", self.model],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                universal_newlines=True
+            )
+
+            # Stream output in real-time
+            for line in process.stdout:
+                # Print progress with proper formatting
+                print(f"  {line.rstrip()}")
+
+            # Wait for process to complete
+            return_code = process.wait()
+
+            if return_code != 0:
                 raise RuntimeError(
-                    f"Model '{self.model}' not found in Ollama.\n"
-                    f"Pull the model with: ollama pull {self.model}"
+                    f"Failed to download model '{self.model}'.\n"
+                    f"ollama pull exited with code {return_code}.\n"
+                    f"Please check your internet connection and try again."
                 )
+
+            print(f"\n✅ Model '{self.model}' downloaded successfully!")
+
         except subprocess.TimeoutExpired:
-            raise RuntimeError("Ollama command timed out. Is Ollama running?")
+            raise RuntimeError(
+                "Ollama command timed out.\n"
+                "Please ensure Ollama is running:\n"
+                "  macOS/Linux: ollama serve"
+            )
         except FileNotFoundError:
-            raise RuntimeError("Ollama executable not found.")
+            raise RuntimeError(
+                "Ollama executable not found.\n"
+                "Please install Ollama from https://ollama.ai"
+            )
 
     def generate(
         self,

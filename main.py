@@ -182,29 +182,26 @@ Examples:
   # Create datasets
   python main.py create-datasets
 
-  # Run full experiment with OpenAI
-  python main.py run-experiment --model gpt-4
+  # Run full experiment (uses Ollama phi3 by default, auto-downloads if missing)
+  python main.py run-experiment
 
-  # Run with local Ollama (llama3.2)
-  python main.py run-experiment --provider ollama --model llama3.2
+  # Run with different Ollama model (auto-downloads if missing)
+  python main.py run-experiment --model llama3.2
 
   # Run with Ollama in FAST MODE (2-5x faster)
-  python main.py run-experiment --provider ollama --model llama3.2 --fast-mode
+  python main.py run-experiment --fast-mode
 
-  # Run with phi3 (faster model) in fast mode
-  python main.py run-experiment --provider ollama --model phi3 --fast-mode
+  # Run with OpenAI (requires API key)
+  python main.py run-experiment --provider openai --model gpt-4
 
   # Run baseline only
   python main.py run-baseline
 
-  # Run baseline with Ollama in fast mode
-  python main.py run-baseline --provider ollama --model llama3.2 --fast-mode
-
   # Compare specific techniques
   python main.py compare --techniques baseline chain_of_thought
 
-  # Compare with fast mode
-  python main.py compare --techniques baseline chain_of_thought --provider ollama --model phi3 --fast-mode
+  # Compare with different model
+  python main.py compare --techniques baseline chain_of_thought --model llama3.2
 
   # Validate datasets
   python main.py validate
@@ -231,10 +228,10 @@ Examples:
     parser_run.add_argument('--config', type=str, help='Path to config JSON file')
     parser_run.add_argument('--dataset-a', type=str, help='Path to Dataset A')
     parser_run.add_argument('--dataset-b', type=str, help='Path to Dataset B')
-    parser_run.add_argument('--provider', default='openai', choices=['openai', 'anthropic', 'ollama'],
-                           help='LLM provider: openai, anthropic, or ollama (local)')
-    parser_run.add_argument('--model', default='gpt-4',
-                           help='Model name (e.g., gpt-4, claude-3-opus-20240229, llama3.2)')
+    parser_run.add_argument('--provider', default='ollama', choices=['openai', 'anthropic', 'ollama'],
+                           help='LLM provider (default: ollama, auto-downloads models)')
+    parser_run.add_argument('--model', default='phi3',
+                           help='Model name (default: phi3, auto-downloaded if missing)')
     parser_run.add_argument('--temperature', type=float, default=0.0)
     parser_run.add_argument('--max-tokens', type=int, default=500)
     parser_run.add_argument('--techniques', nargs='+', help='Techniques to evaluate')
@@ -249,10 +246,10 @@ Examples:
         help='Run baseline evaluation only'
     )
     parser_baseline.add_argument('--dataset-a', type=str, help='Path to Dataset A')
-    parser_baseline.add_argument('--provider', default='openai', choices=['openai', 'anthropic', 'ollama'],
-                                help='LLM provider: openai, anthropic, or ollama (local)')
-    parser_baseline.add_argument('--model', default='gpt-4',
-                                help='Model name (e.g., gpt-4, llama3.2)')
+    parser_baseline.add_argument('--provider', default='ollama', choices=['openai', 'anthropic', 'ollama'],
+                                help='LLM provider (default: ollama, auto-downloads models)')
+    parser_baseline.add_argument('--model', default='phi3',
+                                help='Model name (default: phi3, auto-downloaded if missing)')
     parser_baseline.add_argument('--output', default='results')
     parser_baseline.add_argument('--fast-mode', action='store_true',
                                 help='Enable FAST MODE: shorter prompts, reduced timeouts')
@@ -266,10 +263,10 @@ Examples:
     parser_compare.add_argument('--techniques', nargs='+', required=True)
     parser_compare.add_argument('--dataset-a', type=str)
     parser_compare.add_argument('--dataset-b', type=str)
-    parser_compare.add_argument('--provider', default='openai', choices=['openai', 'anthropic', 'ollama'],
-                               help='LLM provider: openai, anthropic, or ollama (local)')
-    parser_compare.add_argument('--model', default='gpt-4',
-                               help='Model name (e.g., gpt-4, llama3.2)')
+    parser_compare.add_argument('--provider', default='ollama', choices=['openai', 'anthropic', 'ollama'],
+                               help='LLM provider (default: ollama, auto-downloads models)')
+    parser_compare.add_argument('--model', default='phi3',
+                               help='Model name (default: phi3, auto-downloaded if missing)')
     parser_compare.add_argument('--output', default='results')
     parser_compare.add_argument('--fast-mode', action='store_true',
                                help='Enable FAST MODE: shorter prompts, reduced timeouts')

@@ -25,24 +25,23 @@ from prompts import (
     RoleBasedPrompt,
     FewShotPrompt,
 )
-from metrics import (
-    calculate_entropy,
-    calculate_perplexity,
-    calculate_loss,
-    calculate_fallback_entropy,
-    calculate_fallback_perplexity,
-    calculate_fallback_loss,
-    calculate_accuracy,
-    calculate_dataset_accuracy,
-)
-from visualization import generate_visualization_report
 from .summary import (
     print_experiment_summary,
-    print_phase_header,
-    print_progress,
     generate_summary_dict,
 )
-from .experiment_evaluator import evaluate_technique, collect_dataset_results
+
+# Import phase-specific modules
+from .orchestrator_data import load_datasets
+from .orchestrator_evaluation import (
+    run_baseline_evaluation,
+    run_prompt_optimization,
+    calculate_all_metrics,
+    run_statistical_validation,
+)
+from .orchestrator_reporting import (
+    generate_visualizations,
+    save_results,
+)
 
 
 @dataclass
@@ -125,7 +124,7 @@ class ExperimentOrchestrator:
                 "techniques": config.techniques,
             },
             "datasets": {},
-            "techniques": {},  # Per-technique results
+            "techniques": {},
             "baseline_technique": "baseline",
             "statistical_tests": {},
             "summary": {},
@@ -147,73 +146,37 @@ class ExperimentOrchestrator:
         """
         self.results["metadata"]["start_time"] = datetime.now().isoformat()
 
-        print("=" * 70)
-        print("PROMPT OPTIMIZATION EXPERIMENTAL PIPELINE")
-        print("=" * 70)
-        print(f"Model: {self.config.llm_model}")
-        print(f"Provider: {self.config.llm_provider}")
-
-        # Fast mode messaging
-        if self.config.fast_mode:
-            print("🚀 FAST MODE: ENABLED")
-            print("  • Shortened prompts for all techniques")
-            print("  • Reduced timeouts (20s vs 60s normal)")
-            print("  • Token limits reduced (16 vs 32 normal)")
-
-            # Model recommendation for Ollama
-            if self.config.llm_provider == "ollama" and "llama3.2" in self.config.llm_model:
-                print("  ⚠️  TIP: Consider using 'phi3' for faster inference:")
-                print("      ollama pull phi3")
-                print("      python main.py run-experiment --provider ollama --model phi3 --fast-mode")
-
-        # Filter out heavy techniques in fast mode
-        techniques_to_run = self.config.techniques.copy()
-        if self.config.fast_mode:
-            heavy_techniques = ["tree_of_thoughts", "chain_of_thought_plus_plus"]
-            skipped = [t for t in heavy_techniques if t in techniques_to_run]
-            techniques_to_run = [t for t in techniques_to_run if t not in heavy_techniques]
-
-            if skipped:
-                print(f"  ⏭️  Skipping heavy techniques: {', '.join(skipped)}")
-
-        print(f"Techniques: {', '.join(techniques_to_run)}")
-        print(f"Output: {self.config.output_dir}")
-        print("=" * 70)
-
-        # Update techniques list to reflect filtering
-        original_techniques = self.config.techniques
-        self.config.techniques = techniques_to_run
+        self._print_header()
+        self._apply_fast_mode_filtering()
 
         # Phase 1: Load Datasets
         print("\n[Phase 1/6] Loading Datasets...")
-        self._load_datasets()
+        load_datasets(self.config.dataset_paths, self.results)
 
         # Phase 2: Baseline Evaluation
         print("\n[Phase 2/6] Running Baseline Evaluation...")
-        self._run_baseline_evaluation()
+        run_baseline_evaluation(self.config.techniques, self)
 
         # Phase 3: Prompt Optimization
         print("\n[Phase 3/6] Running Prompt Optimization...")
-        self._run_prompt_optimization()
+        run_prompt_optimization(self.config.techniques, self)
 
         # Phase 4: Metric Calculation
         print("\n[Phase 4/6] Calculating Metrics...")
-        self._calculate_metrics()
+        calculate_all_metrics(self.results)
 
         # Phase 5: Statistical Validation
         print("\n[Phase 5/6] Statistical Validation...")
-        self._run_statistical_validation()
+        run_statistical_validation(self.results)
 
         # Phase 6: Generate Visualizations
         print("\n[Phase 6/6] Generating Visualizations...")
-        self._generate_visualizations()
+        generate_visualizations(self.results, self.config.techniques, self.output_path)
 
         # Save final results
-        self._save_results()
+        save_results(self.results, self.output_path)
 
         self.results["metadata"]["end_time"] = datetime.now().isoformat()
-
-        # Generate summary dictionary
         self.results["summary"] = generate_summary_dict(self.results)
 
         # Print human-readable summary
@@ -233,208 +196,38 @@ class ExperimentOrchestrator:
 
         return self.results
 
-    def _load_datasets(self):
-        """Phase 1: Load datasets."""
-        for dataset_name, dataset_path in self.config.dataset_paths.items():
-            print(f"  Loading {dataset_name}...")
-            dataset = load_dataset(dataset_path)
-            self.results["datasets"][dataset_name] = {
-                "path": dataset_path,
-                "total_samples": dataset["total_samples"],
-                "categories": dataset.get("categories", []),
-            }
-            self.results["metadata"]["total_samples"] += dataset["total_samples"]
-            print(f"    ✓ Loaded {dataset['total_samples']} samples")
+    def _print_header(self):
+        """Print pipeline header."""
+        print("=" * 70)
+        print("PROMPT OPTIMIZATION EXPERIMENTAL PIPELINE")
+        print("=" * 70)
+        print(f"Model: {self.config.llm_model}")
+        print(f"Provider: {self.config.llm_provider}")
 
-    def _run_baseline_evaluation(self):
-        """Phase 2: Run baseline evaluation (if baseline in techniques)."""
-        if "baseline" not in self.config.techniques:
-            print("  Skipping baseline (not in techniques list)")
-            return
+        if self.config.fast_mode:
+            print("🚀 FAST MODE: ENABLED")
+            print("  • Shortened prompts for all techniques")
+            print("  • Reduced timeouts (20s vs 60s normal)")
+            print("  • Token limits reduced (16 vs 32 normal)")
 
-        print("  → Running baseline evaluation...")
-        self._evaluate_technique("baseline")
+            if self.config.llm_provider == "ollama" and "llama3.2" in self.config.llm_model:
+                print("  ⚠️  TIP: Consider using 'phi3' for faster inference:")
+                print("      ollama pull phi3")
+                print("      python main.py run-experiment --provider ollama --model phi3 --fast-mode")
 
-    def _run_prompt_optimization(self):
-        """Phase 3: Run prompt optimization for all techniques."""
-        other_techniques = [t for t in self.config.techniques if t != "baseline"]
+    def _apply_fast_mode_filtering(self):
+        """Apply fast mode filtering to techniques."""
+        if self.config.fast_mode:
+            heavy_techniques = ["tree_of_thoughts", "chain_of_thought_plus_plus"]
+            skipped = [t for t in heavy_techniques if t in self.config.techniques]
+            self.config.techniques = [t for t in self.config.techniques if t not in heavy_techniques]
 
-        if not other_techniques:
-            print("  No optimization techniques specified")
-            return
+            if skipped:
+                print(f"  ⏭️  Skipping heavy techniques: {', '.join(skipped)}")
 
-        print(f"  → Evaluating {len(other_techniques)} optimization technique(s)...")
-
-        for technique in other_techniques:
-            self._evaluate_technique(technique)
-
-    def _evaluate_technique(self, technique_name: str):
-        """
-        Evaluate a single technique across all datasets.
-
-        Args:
-            technique_name: Name of the technique to evaluate
-        """
-        # Get prompt builder
-        if technique_name not in self.technique_builders:
-            print(f"  ⚠️  Unknown technique: {technique_name}")
-            return
-
-        prompt_builder = self.technique_builders[technique_name]
-        prompt_template = prompt_builder.build(fast_mode=self.config.fast_mode)
-
-        # Initialize results for this technique
-        self.results["techniques"][technique_name] = {
-            "predictions": [],
-            "metrics": {},
-            "datasets_evaluated": [],
-        }
-
-        total_predictions = []
-
-        # Evaluate on each dataset
-        for dataset_name, dataset_info in self.results["datasets"].items():
-            dataset_path = dataset_info["path"]
-            dataset = load_dataset(dataset_path)
-
-            # Run evaluation
-            result = evaluate_technique(
-                llm_client=self.llm_client,
-                dataset=dataset,
-                prompt_template=prompt_template,
-                technique_name=technique_name,
-            )
-
-            # Update API call count
-            self.results["metadata"]["total_api_calls"] += result["successful_count"]
-
-            # Track if using fallback metrics
-            if not result["has_logprobs"]:
-                self.results["metadata"]["uses_fallback_metrics"] = True
-
-            # Store predictions
-            total_predictions.extend(result["predictions"])
-
-            # Store dataset-specific results
-            self.results["techniques"][technique_name]["datasets_evaluated"].append({
-                "dataset_name": dataset_name,
-                "metrics": result["metrics"],
-                "sample_count": result["sample_count"],
-            })
-
-        # Store all predictions
-        self.results["techniques"][technique_name]["predictions"] = total_predictions
-
-        # Calculate overall metrics (average across datasets)
-        self._calculate_technique_metrics(technique_name)
-
-        print(f"    ✓ {technique_name} complete")
-
-    def _calculate_technique_metrics(self, technique_name: str):
-        """
-        Calculate overall metrics for a technique across all datasets.
-
-        Args:
-            technique_name: Name of the technique
-        """
-        tech_data = self.results["techniques"][technique_name]
-        datasets_eval = tech_data["datasets_evaluated"]
-
-        if not datasets_eval:
-            return
-
-        # Average metrics across datasets
-        metrics = {}
-        metric_keys = datasets_eval[0]["metrics"].keys()
-
-        for key in metric_keys:
-            values = [d["metrics"][key] for d in datasets_eval if key in d["metrics"]]
-            if values:
-                if key in ["correct_count", "total_count", "avg_response_length"]:
-                    metrics[key] = sum(values)  # Sum for counts
-                else:
-                    metrics[key] = sum(values) / len(values)  # Average for ratios
-
-        tech_data["metrics"] = metrics
-
-    def _calculate_metrics(self):
-        """Phase 4: Calculate all metrics."""
-        print("  → Metrics already calculated per-technique")
-        print("  → Aggregating final statistics...")
-
-        # All metrics are already calculated in _evaluate_technique
-        # This phase just aggregates and validates
-
-        total_techniques = len(self.results["techniques"])
-        total_with_fallback = sum(
-            1 for t in self.results["techniques"].values()
-            if t.get("metrics", {}).get("metrics_estimated", False)
-        )
-
-        print(f"    • Techniques evaluated: {total_techniques}")
-        if total_with_fallback > 0:
-            print(f"    • Using fallback metrics: {total_with_fallback}/{total_techniques}")
-
-        print("    ✓ All metrics computed")
-
-    def _run_statistical_validation(self):
-        """Phase 5: Run statistical tests."""
-        print("  Running statistical significance tests...")
-        # Placeholder - actual statistical tests
-        self.results["statistics"] = {
-            "t_tests": {},
-            "wilcoxon_tests": {},
-            "bonferroni_corrected": True,
-        }
-        print("    ✓ Statistical validation complete")
-
-    def _generate_visualizations(self):
-        """Phase 6: Generate all visualizations."""
-        print("  Generating visualizations...")
-
-        # Import the new visualization module
-        from visualization.visualization import generate_all_visualizations
-
-        # Generate the 4 key visualizations
-        figures_dir = generate_all_visualizations(
-            self.results,
-            output_dir=str(self.output_path / "figures")
-        )
-
-        # Also generate the legacy 12-visualization report (if needed)
-        # Prepare visualization data for backward compatibility
-        viz_data = {
-            "techniques": self.config.techniques,
-            "accuracy": {},
-            "loss": {},
-            "total_samples": self.results["metadata"]["total_samples"],
-        }
-
-        try:
-            report_path = generate_visualization_report(
-                viz_data,
-                output_dir=str(self.output_path),
-                include_plots=True,
-            )
-        except Exception as e:
-            print(f"    ⚠️  Legacy visualizations skipped: {e}")
-            report_path = None
-
-        self.results["visualizations"] = {
-            "figures_dir": figures_dir,
-            "report_path": report_path if report_path else str(self.output_path / "figures"),
-        }
-
-        print(f"\n    ✓ All visualizations saved to {self.output_path / 'figures'}")
-
-    def _save_results(self):
-        """Save comprehensive results to JSON."""
-        results_file = self.output_path / "experiment_results.json"
-
-        with open(results_file, 'w') as f:
-            json.dump(self.results, f, indent=2)
-
-        print(f"\n  Results saved: {results_file}")
+        print(f"Techniques: {', '.join(self.config.techniques)}")
+        print(f"Output: {self.config.output_dir}")
+        print("=" * 70)
 
     def get_technique_builder(self, technique_name: str):
         """

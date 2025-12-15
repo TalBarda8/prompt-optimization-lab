@@ -37,28 +37,40 @@ The Prompt Optimization & Evaluation System is a comprehensive experimental fram
 
 ## System Context (C4 Level 1)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   Prompt Optimization System                  │
-│                                                               │
-│  Evaluates & compares prompt engineering techniques using    │
-│  mathematical metrics and statistical validation              │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              │
-          ┌───────────────────┼───────────────────┐
-          │                   │                   │
-          ▼                   ▼                   ▼
-  ┌───────────────┐   ┌───────────────┐   ┌──────────────┐
-  │  OpenAI API   │   │Anthropic API  │   │    Ollama    │
-  │   (GPT-4)     │   │   (Claude)    │   │  (Local LLM) │
-  └───────────────┘   └───────────────┘   └──────────────┘
+```mermaid
+C4Context
+    title System Context - Prompt Optimization & Evaluation System
 
-  External Systems:
-  - LLM Providers: Generate responses for evaluation
-  - File System: Dataset storage and results persistence
-  - User: Researchers/developers running experiments
+    Person(researcher, "Academic Researcher", "Studies prompt engineering techniques and evaluates LLM performance")
+    Person(developer, "NLP Engineer", "Optimizes LLM applications using experimental results")
+
+    System(promptSystem, "Prompt Optimization System", "Evaluates & compares 7 prompt engineering techniques using mathematical metrics and statistical validation")
+
+    System_Ext(openai, "OpenAI API", "GPT-4, GPT-3.5-turbo models for text generation")
+    System_Ext(anthropic, "Anthropic API", "Claude models for text generation")
+    System_Ext(ollama, "Ollama", "Local LLM runtime (llama3.2, phi3, etc.) with auto-download")
+
+    System_Ext(filesystem, "File System", "Dataset storage (JSON), configuration (YAML), results persistence (JSON)")
+
+    Rel(researcher, promptSystem, "Runs experiments, analyzes results")
+    Rel(developer, promptSystem, "Uses for prompt optimization research")
+
+    Rel(promptSystem, openai, "Sends prompts, receives completions + logprobs", "HTTPS/REST")
+    Rel(promptSystem, anthropic, "Sends prompts, receives completions", "HTTPS/REST")
+    Rel(promptSystem, ollama, "Sends prompts, receives completions", "Local subprocess")
+
+    Rel(promptSystem, filesystem, "Reads datasets, writes results/visualizations", "File I/O")
+
+    UpdateRelStyle(promptSystem, openai, $textColor="blue", $lineColor="blue")
+    UpdateRelStyle(promptSystem, anthropic, $textColor="green", $lineColor="green")
+    UpdateRelStyle(promptSystem, ollama, $textColor="orange", $lineColor="orange")
 ```
+
+**External Systems:**
+- **OpenAI API**: Provides GPT-4 and GPT-3.5-turbo models with log probabilities for information-theoretic metrics
+- **Anthropic API**: Provides Claude models (Opus, Sonnet, Haiku)
+- **Ollama**: Local LLM runtime with automatic model downloading
+- **File System**: Stores JSON datasets (140 samples), YAML configurations, JSON results, and PNG/SVG visualizations
 
 **Stakeholders**:
 - **Primary**: Academic researchers studying prompt engineering
@@ -71,35 +83,67 @@ The Prompt Optimization & Evaluation System is a comprehensive experimental fram
 
 The system is organized into 8 main containers (Python packages):
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    Application Container                      │
-│                                                               │
-│  ┌────────────┐  ┌────────────┐  ┌─────────────┐            │
-│  │    Data    │  │    LLM     │  │   Prompts   │            │
-│  │  Module    │  │  Client    │  │   Module    │            │
-│  └────────────┘  └────────────┘  └─────────────┘            │
-│                                                               │
-│  ┌────────────┐  ┌────────────┐  ┌─────────────┐            │
-│  │  Metrics   │  │Visualization│  │   Pipeline  │            │
-│  │  Module    │  │   Module    │  │ Orchestrator│            │
-│  └────────────┘  └────────────┘  └─────────────┘            │
-│                                                               │
-│  ┌────────────┐  ┌──────────────────────────────┐            │
-│  │  Building  │  │        Parallel Executor      │            │
-│  │   Blocks   │  │   (Multiprocessing Support)   │            │
-│  └────────────┘  └──────────────────────────────┘            │
-│                                                               │
-│  ┌────────────────────────────────────────────────┐          │
-│  │            CLI & Main Entry Point              │          │
-│  └────────────────────────────────────────────────┘          │
-└──────────────────────────────────────────────────────────────┘
-         │                  │                   │
-         ▼                  ▼                   ▼
-    ┌────────┐       ┌────────────┐      ┌──────────┐
-    │Dataset │       │Configuration│      │ Results  │
-    │ Files  │       │    YAML     │      │  JSON    │
-    └────────┘       └────────────┘      └──────────┘
+```mermaid
+C4Container
+    title Container Architecture - 8 Main Modules
+
+    Person(user, "Researcher", "Runs experiments via CLI")
+
+    Container_Boundary(app, "Prompt Optimization Application") {
+        Container(cli, "CLI Module", "Python/Click", "Command-line interface for experiment management")
+
+        Container(pipeline, "Pipeline Orchestrator", "Python", "Coordinates 6-phase experimental workflow")
+
+        Container(data, "Data Module", "Python", "Dataset creation, loading, and validation (140 samples)")
+
+        Container(llm, "LLM Client", "Python", "Multi-provider API abstraction (OpenAI, Anthropic, Ollama)")
+
+        Container(prompts, "Prompts Module", "Python", "7 prompt technique implementations (CoT, ReAct, ToT, etc.)")
+
+        Container(metrics, "Metrics Module", "Python", "Information-theoretic calculations (Entropy, Perplexity, Loss)")
+
+        Container(viz, "Visualization Module", "Python/Matplotlib", "Generates 12+ publication-ready charts")
+
+        Container(blocks, "Building Blocks", "Python", "6 modular composable components with contracts")
+
+        Container(parallel, "Parallel Executor", "Python/multiprocessing", "Multiprocessing support for performance")
+    }
+
+    System_Ext(openai, "OpenAI API", "GPT models")
+    System_Ext(anthropic, "Anthropic API", "Claude models")
+    System_Ext(ollama, "Ollama Runtime", "Local LLMs")
+
+    ContainerDb(fs_data, "Dataset Files", "JSON", "140 sample questions")
+    ContainerDb(fs_results, "Results Store", "JSON", "Experiment results")
+    ContainerDb(fs_viz, "Visualizations", "PNG/SVG", "12+ charts")
+
+    Rel(user, cli, "Runs experiments", "CLI")
+    Rel(cli, pipeline, "Orchestrates")
+
+    Rel(pipeline, data, "Loads datasets")
+    Rel(pipeline, llm, "Generates responses")
+    Rel(pipeline, prompts, "Builds prompts")
+    Rel(pipeline, metrics, "Calculates metrics")
+    Rel(pipeline, viz, "Creates visualizations")
+    Rel(pipeline, parallel, "Parallelizes execution")
+
+    Rel(prompts, llm, "Uses")
+    Rel(llm, metrics, "Provides logprobs")
+    Rel(blocks, data, "Implements")
+    Rel(blocks, prompts, "Implements")
+    Rel(blocks, metrics, "Implements")
+
+    Rel(llm, openai, "API calls", "HTTPS")
+    Rel(llm, anthropic, "API calls", "HTTPS")
+    Rel(llm, ollama, "Subprocess", "Local")
+
+    Rel(data, fs_data, "Reads")
+    Rel(pipeline, fs_results, "Writes")
+    Rel(viz, fs_viz, "Writes")
+
+    UpdateRelStyle(llm, openai, $textColor="blue", $lineColor="blue")
+    UpdateRelStyle(llm, anthropic, $textColor="green", $lineColor="green")
+    UpdateRelStyle(llm, ollama, $textColor="orange", $lineColor="orange")
 ```
 
 ### Container Responsibilities
@@ -116,6 +160,87 @@ The system is organized into 8 main containers (Python packages):
 ---
 
 ## Component Architecture (C4 Level 3)
+
+```mermaid
+C4Component
+    title Component Architecture - Building Blocks Pattern
+
+    Container_Boundary(pipeline, "Pipeline Orchestrator") {
+        Component(orchestrator, "ExperimentOrchestrator", "Python Class", "Main coordinator for 6-phase pipeline")
+        Component(config, "ExperimentConfig", "Dataclass", "Configuration parameters")
+        Component(parallel_exec, "ParallelExecutor", "Python Class", "Multiprocessing pool manager")
+    }
+
+    Container_Boundary(blocks, "Building Blocks Module - 6 Contracts") {
+        Component(bb1, "JSONDataLoader", "Building Block #1", "Contract: load(path) → Dataset")
+        Component(bb2, "TechniquePromptBuilder", "Building Block #2", "Contract: build(technique) → Prompt")
+        Component(bb3, "UnifiedLLMInterface", "Building Block #3", "Contract: execute(prompt) → Response")
+        Component(bb4, "MetricCalculator", "Building Block #4", "Contract: calculate(response) → Metrics")
+        Component(bb5, "ResultAggregator", "Building Block #5", "Contract: aggregate(results) → Summary")
+        Component(bb6, "MatplotlibVisualizer", "Building Block #6", "Contract: visualize(data) → Figure")
+    }
+
+    Container_Boundary(data, "Data Module") {
+        Component(dataset_creator, "DatasetCreator", "Python Class", "Creates 140 samples (2 datasets)")
+        Component(validators, "DatasetValidator", "Python Class", "Validates PRD compliance")
+        Component(loaders, "load_dataset", "Function", "JSON parsing and loading")
+    }
+
+    Container_Boundary(llm_mod, "LLM Module") {
+        Component(llm_client, "LLMClient", "Python Class", "Multi-provider abstraction")
+        Component(llm_openai, "OpenAI Handler", "Component", "GPT-4, GPT-3.5-turbo")
+        Component(llm_anthropic, "Anthropic Handler", "Component", "Claude Opus/Sonnet/Haiku")
+        Component(llm_ollama, "Ollama Handler", "Component", "Local LLMs + auto-download")
+    }
+
+    Container_Boundary(prompts_mod, "Prompts Module") {
+        Component(base_prompt, "PromptTechnique", "Base Class", "Abstract template pattern")
+        Component(baseline, "BaselinePrompt", "Technique #1", "Direct question answering")
+        Component(cot, "ChainOfThoughtPrompt", "Technique #2", "Step-by-step reasoning")
+        Component(react, "ReActPrompt", "Technique #3", "Reason + Act pattern")
+        Component(tot, "TreeOfThoughtsPrompt", "Technique #4", "Multiple reasoning paths")
+    }
+
+    Container_Boundary(metrics_mod, "Metrics Module") {
+        Component(accuracy, "AccuracyCalculator", "Component", "Exact + fuzzy matching")
+        Component(info_theory, "InformationTheory", "Component", "Entropy, Perplexity, Loss")
+        Component(aggregator, "MetricAggregator", "Component", "Cross-dataset aggregation")
+    }
+
+    Container_Boundary(viz_mod, "Visualization Module") {
+        Component(plotters, "Plotters", "12 Functions", "plot_accuracy, plot_loss, plot_heatmap, etc.")
+        Component(viz_gen, "VisualizationGenerator", "Component", "Orchestrates 4 key visualizations")
+        Component(report_gen, "ReportGenerator", "Component", "Markdown/HTML reports")
+    }
+
+    Rel(orchestrator, config, "Uses")
+    Rel(orchestrator, parallel_exec, "Delegates to")
+
+    Rel(orchestrator, bb1, "Phase 1: Load")
+    Rel(orchestrator, bb2, "Phase 2-3: Build prompts")
+    Rel(orchestrator, bb3, "Phase 2-3: Execute")
+    Rel(orchestrator, bb4, "Phase 4: Calculate")
+    Rel(orchestrator, bb5, "Phase 5: Aggregate")
+    Rel(orchestrator, bb6, "Phase 6: Visualize")
+
+    Rel(bb1, loaders, "Implements contract via")
+    Rel(bb2, base_prompt, "Implements contract via")
+    Rel(bb3, llm_client, "Implements contract via")
+    Rel(bb4, info_theory, "Implements contract via")
+    Rel(bb5, aggregator, "Implements contract via")
+    Rel(bb6, plotters, "Implements contract via")
+
+    Rel(llm_client, llm_openai, "Delegates to")
+    Rel(llm_client, llm_anthropic, "Delegates to")
+    Rel(llm_client, llm_ollama, "Delegates to")
+
+    Rel(base_prompt, baseline, "Extended by")
+    Rel(base_prompt, cot, "Extended by")
+    Rel(base_prompt, react, "Extended by")
+    Rel(base_prompt, tot, "Extended by")
+
+    Rel(info_theory, accuracy, "Uses")
+```
 
 ### Data Module Components
 
